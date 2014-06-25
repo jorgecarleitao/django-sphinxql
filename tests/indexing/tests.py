@@ -1,5 +1,5 @@
-import datetime
 from unittest import TestCase
+from django.utils.timezone import now
 
 from sphinxql.core.base import DateTime, Date
 from sphinxql.exceptions import ImproperlyConfigured
@@ -32,8 +32,8 @@ class IndexTestCase(SphinxQLTestCase):
 
         self.document = Document.objects.create(
             summary="This is a summary", text="What a nice text",
-            date=datetime.date(2014, 2, 2),
-            added_time=datetime.datetime(2014, 3, 3, 12, 12, 12),
+            date=now().date(),
+            added_time=now(),
             number=2, float=2.2, bool=True)
         self.index()
 
@@ -62,7 +62,7 @@ class IndexTestCase(SphinxQLTestCase):
         result = list(self.query)[0][4]
 
         result = DateTime.to_python(result)
-        self.assertEqual(result, self.document.added_time)
+        self.assertEqual(result, self.document.added_time.replace(microsecond=0))
 
     def test_number(self):
         result = list(self.query)[0][5]
