@@ -1,4 +1,6 @@
 import datetime
+import calendar
+
 from django.conf import settings
 from django.utils.timezone import utc
 
@@ -435,8 +437,7 @@ class Date(Value):
     _python_type = datetime.date
 
     def as_sql(self):
-        import time
-        return str(int(time.mktime(self._value.timetuple())))
+        return calendar.timegm(self._value.timetuple())
 
     @staticmethod
     def to_python(db_value):
