@@ -32,6 +32,9 @@ class Query(CompilableSQL):
     def _fetch_all(self):
         return self._connection.fetch_all(self.as_sql(), self.get_params())
 
+    def __repr__(self):
+        return self.as_sql()
+
     def __iter__(self):
         """
         If limits are defined, returns an iterator over all results.
