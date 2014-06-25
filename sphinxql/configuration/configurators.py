@@ -30,8 +30,8 @@ def add_source_conf_param(source_conf, key, value):
 
 
 SPHINX_TO_DJANGO_MAP = {'user': 'sql_user',
-                        'passwd': 'sql_pass',
-                        'db': 'sql_db',
+                        'passwd': 'sql_pass', 'password': 'sql_pass',
+                        'db': 'sql_db', 'database': 'sql_db',
                         'port': 'sql_port',
                         'host': 'sql_host',
                         'unix_socket': 'sql_sock'
@@ -171,13 +171,16 @@ class Configurator(object):
             alias = qn(field.name)
             sql = "%s"
             if field.type() in (DateTime, Date):
-                # for dates, we need the timestamp. This is still restricted to "mysql".
-                # To ensure we get the correct timestamp (i.e. same as Django uses in Python),
-                # we convert it to UTC.
-                sql = "UNIX_TIMESTAMP(CONVERT_TZ(" \
-                      "%s, " \
-                      "'+00:00', " \
-                      "@@session.time_zone))"
+                # for dates, we need the timestamp.
+                # To ensure we get the correct timestamp (i.e. same as Django uses),
+                # in mysql we convert it to UTC.
+                if self.vendor == 'mysql':
+                    sql = "UNIX_TIMESTAMP(CONVERT_TZ(" \
+                          "%s, " \
+                          "'+00:00', " \
+                          "@@session.time_zone))"
+                else:
+                    sql = "EXTRACT(EPOCH FROM %s AT TIME ZONE '%s')" % ('%s', settings.TIME_ZONE)
             select["%s" % alias] = sql % column_name
 
         query = query.only('id').extra(select=select)

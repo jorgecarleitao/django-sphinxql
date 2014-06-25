@@ -1,4 +1,16 @@
 
+# for testing postgres
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'sphinx_example',
+        'TEST_NAME': 'sphinx_example_test',
+        'USER': 'sphinx_example',
+        'PASSWORD': 'test'
+    },
+}
+
+# for testing mysql
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
