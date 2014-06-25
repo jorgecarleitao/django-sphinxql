@@ -86,3 +86,8 @@ class Index(metaclass=MetaIndex):
         meta = getattr(cls.Meta.model, '_meta', None)
         assert meta is not None
         return "%s_%s" % (meta.app_label, cls.__name__.lower())
+
+    @classmethod
+    def get_model_field(cls, model_attr):
+        field, _, _, _ = cls.Meta.model._meta.get_field_by_name(model_attr)
+        return field.get_attname_column()[1]

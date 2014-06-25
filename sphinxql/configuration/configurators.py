@@ -58,6 +58,8 @@ class Configurator(object):
         self.path = settings.INDEXES['PATH']
         self.sphinx_file = os.path.join(self.sphinx_path, 'sphinx.conf')
 
+        self.vendor = ''
+
         searchd_params = {'listen': '9306:mysql41',
                           'pid_file': os.path.join(self.sphinx_path, 'searchd.pid')}
 
@@ -74,6 +76,9 @@ class Configurator(object):
         self.indexes = OrderedDict()
         self.indexes_confs = []
         self.sources_confs = []
+
+        # todo: generalize to handle routing
+        self.db = 'default'
 
     def register(self, index):
         """
@@ -106,19 +111,19 @@ class Configurator(object):
         source_attrs.update(self.source_params)
 
         ### select type from backend
-        db = 'default'
-        if connections[db].vendor not in DJANGO_TO_SPHINX_VENDOR:
+        if connections[self.db].vendor not in DJANGO_TO_SPHINX_VENDOR:
             raise ImproperlyConfigured('Django-SphinxQL currently only supports mysql '
                                        'and postgresql backends')
 
         source_attrs = add_source_conf_param(source_attrs,
                                              'type',
-                                             DJANGO_TO_SPHINX_VENDOR[connections[db].vendor])
+                                             DJANGO_TO_SPHINX_VENDOR[connections[self.db].vendor])
+        self.vendor = DJANGO_TO_SPHINX_VENDOR[connections[self.db].vendor]
 
         ### build connection parameters from Django connection parameters
         source_attrs.update(DEFAULT_SOURCE_PARAMS)
 
-        connection_params = connections[db].get_connection_params()
+        connection_params = connections[self.db].get_connection_params()
         for key in connection_params:
             if key in SPHINX_TO_DJANGO_MAP:
                 value = SPHINX_TO_DJANGO_MAP[key]
@@ -142,8 +147,16 @@ class Configurator(object):
 
         return SourceConfiguration(index.build_name(), source_attrs)
 
-    @staticmethod
-    def _build_query(index):
+    def _build_query(self, index):
+        """
+        Returns a SQL query built according to the fields selected
+        """
+        def qn(value):
+            if self.vendor == 'mysql':
+                return '`%s`' % value
+            else:
+                return '"%s"' % value
+
         if hasattr(index.Meta, 'query'):
             query = index.Meta.query
         else:
@@ -154,17 +167,18 @@ class Configurator(object):
         # map them correctly
         select = OrderedDict(id='id')
         for field in index.Meta.fields:
+            column_name = qn(index.get_model_field(field.model_attr))
+            alias = qn(field.name)
+            sql = "%s"
             if field.type() in (DateTime, Date):
                 # for dates, we need the timestamp. This is still restricted to "mysql".
                 # To ensure we get the correct timestamp (i.e. same as Django uses in Python),
                 # we convert it to UTC.
                 sql = "UNIX_TIMESTAMP(CONVERT_TZ(" \
-                      "`%s`, " \
+                      "%s, " \
                       "'+00:00', " \
                       "@@session.time_zone))"
-            else:
-                sql = "`%s`"
-            select["`%s`" % field.name] = sql % field.model_attr
+            select["%s" % alias] = sql % column_name
 
         query = query.only('id').extra(select=select)
 
