@@ -3,10 +3,6 @@ from django.conf import settings
 from django.utils.timezone import utc
 
 
-def quote(string):
-    return "`%s`" % string
-
-
 def convert(other):
     if isinstance(other, bool):
         return Bool(other)

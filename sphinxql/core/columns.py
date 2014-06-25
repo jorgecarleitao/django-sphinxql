@@ -1,4 +1,8 @@
-from ..core.base import SQLExpression, Integer, quote
+from ..core.base import SQLExpression, Integer
+
+
+def quote(string):
+    return "`%s`" % string
 
 
 class Column(SQLExpression):
