@@ -163,14 +163,14 @@ class OtherTestCase(TestCase):
         r = Date(datetime.date(2014, 2, 2)) > datetime.date(2014, 3, 2)
 
         self.assertEqual(r.type(), Bool)
-        self.assertEqual(r.as_sql(), '1391320800 > 1393740000')
+        self.assertEqual(r.as_sql(), '1391299200 > 1393718400')
 
     def test_datetimes(self):
 
         r = Date(datetime.datetime(2014, 2, 2, 12, 12, 12)) > datetime.datetime(2014, 2, 2, 12, 12, 13)
 
         self.assertEqual(r.type(), Bool)
-        self.assertEqual(r.as_sql(), '1391364732 > 1391364733')
+        self.assertEqual(r.as_sql(), '1391343132 > 1391343133')
 
     def test_wrong_type(self):
         self.assertRaises(TypeError, Date.__lt__, Date(datetime.datetime(2014, 2, 2)), And)

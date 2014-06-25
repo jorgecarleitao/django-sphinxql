@@ -170,17 +170,20 @@ class Configurator(object):
             column_name = qn(index.get_model_field(field.model_attr))
             alias = qn(field.name)
             sql = "%s"
-            if field.type() in (DateTime, Date):
-                # for dates, we need the timestamp.
-                # To ensure we get the correct timestamp (i.e. same as Django uses),
-                # in mysql we convert it to UTC.
-                if self.vendor == 'mysql':
+            if self.vendor == 'mysql':
+                if field.type() in (DateTime, Date):
+                    # for dates, we need the timestamp.
+                    # To ensure we get the correct timestamp (i.e. same as Django uses),
+                    # in mysql we convert it to UTC.
                     sql = "UNIX_TIMESTAMP(CONVERT_TZ(" \
                           "%s, " \
                           "'+00:00', " \
                           "@@session.time_zone))"
-                else:
+            if self.vendor == 'pgsql':
+                if field.type() is DateTime:
                     sql = "EXTRACT(EPOCH FROM %s AT TIME ZONE '%s')" % ('%s', settings.TIME_ZONE)
+                elif field.type() is Date:
+                    sql = "EXTRACT(EPOCH FROM %s)"
             select["%s" % alias] = sql % column_name
 
         query = query.only('id').extra(select=select)

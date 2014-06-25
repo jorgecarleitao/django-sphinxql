@@ -2,7 +2,7 @@ import datetime
 import calendar
 
 from django.conf import settings
-from django.utils.timezone import utc
+from django.utils.timezone import utc, get_current_timezone
 
 
 def convert(other):
@@ -443,7 +443,7 @@ class Date(Value):
     def to_python(db_value):
         dt = datetime.datetime.utcfromtimestamp(db_value)
         if settings.USE_TZ:
-            dt = dt.replace(tzinfo=utc)
+            dt = dt.replace(tzinfo=get_current_timezone())
         return dt.date()
 
 
@@ -455,5 +455,5 @@ class DateTime(Date):
     def to_python(db_value):
         dt = datetime.datetime.utcfromtimestamp(db_value)
         if settings.USE_TZ:
-            dt = dt.replace(tzinfo=utc)
+            dt = dt.replace(tzinfo=get_current_timezone())
         return dt
