@@ -127,3 +127,5 @@ the Sphinx index. In Django-Sphinxql, such filter is defined as a string inside 
 
     >>> q.where = Match('hello & world') & C('votes') > 0
 
+Sphinx only allows one ``MATCH`` per query; it is the developer responsibility to
+guarantee that this happens.
