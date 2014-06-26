@@ -12,6 +12,8 @@ class QuerySet(object):
         self.query = Query()
         self.query.fromm.append(index)
 
+        self._queryset = self._index.Meta.model.objects.all()  # Django query
+
         # Sphinx: there can be only one match per query.
         # This is a global constraint on queries
         # We keep it here.
@@ -20,6 +22,20 @@ class QuerySet(object):
         self._fetch_all_cache = None
 
         self._set_default_fields(self.query)
+
+    def _reset_cache(self):
+        self._fetch_all_cache = None
+
+    @property
+    def queryset(self):
+        return self._queryset
+
+    @queryset.setter
+    def queryset(self, queryset):
+        self._reset_cache()
+        if queryset.model != self._index.Meta.model:
+            raise TypeError("You cannot set Django QuerySet of a different model.")
+        self._queryset = queryset
 
     def _fetch_all(self):
         if self._fetch_all_cache is None:
@@ -45,18 +61,22 @@ class QuerySet(object):
     def _parsed_models(self):
         """
         Match the results to the models.
-        Each model gets the attribute `search_index` with the respective
+        Each model gets the attribute `search_result` with the respective
         match
         """
-
+        # hit Sphinx
         id_list = [entry[0] for entry in list(self._fetch_all())]
-
         indexes = dict([(obj.id, obj) for obj in self._parse_results()])
-        models = self._index.Meta.model.objects.in_bulk(id_list)
 
+        # hit Django
+        models = self.queryset.in_bulk(id_list)
+
+        # exclude objects excluded by Django query
         for id in id_list:
-            models[id].search_result = indexes[id]
-            yield models[id]
+            if id in models:
+                # annotate `search_result`
+                models[id].search_result = indexes[id]
+                yield models[id]
 
     def __iter__(self):
         return self._parsed_models()
@@ -157,4 +177,5 @@ class QuerySet(object):
         clone = QuerySet(self._index)
         clone._match = self._match
         clone.query = self.query.clone()
+        clone.queryset = self.queryset
         return clone

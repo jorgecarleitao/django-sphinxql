@@ -6,13 +6,13 @@ with `Django <http://djangoproject.com>`_. Thanks for checking it out.
 
 Django is a Web framework for building websites with relational databases;
 Sphinx is a search engine designed to be used in relational databases.
-Django-SphinxQL defines an ORM for using Sphinx within Django.
+Django-SphinxQL defines an ORM for using **Sphinx within Django**.
 
 As corollary, it allows you to implement full text search with Sphinx
 in your Django website. Specifically, this API allows you to:
 
 1. Configure Sphinx with Python.
-2. Index text from Django models in Sphinx.
+2. Index Django models in Sphinx.
 3. Execute Sphinx queries (SphinxQL) and retrieve the results like Django.
 
 .. warning::
@@ -36,7 +36,7 @@ Installation
 
 .. _Sphinx: http://sphinxsearch.com/docs/current.html#installation
 
-Django-SphinxQL has no Python requirements besides Django and `Sphinx`_.
+Django-SphinxQL has no requirements besides Django and `Sphinx`_.
 
 To install Django-SphinxQL, use::
 
@@ -65,6 +65,7 @@ You have a model ``Document`` with a ``summary``, a ``text`` and a ``number``.
 To index it, first create a file ``indexes.py`` with::
 
     from sphinxql import indexes, fields
+    from myapp import models
 
     class DocumentIndex(indexes.Index):
         my_summary = fields.Text(model_attr='summary')
@@ -86,6 +87,8 @@ Then, start Sphinx (only have to be started once)::
 
     python manage.py start_sphinx
 
+(for the sake of reversibility, to stop Sphinx use ``python manage.py stop_sphinx``)
+
 Search your indexes
 -------------------
 
@@ -96,7 +99,7 @@ for text search.
 SQL filter
 ^^^^^^^^^^
 
-The interface of Django-SphinxQL is close to Django::
+The interface of Django-SphinxQL is close to Django, but without lookups::
 
     >>> from sphinx.sql import C
     >>> q = DocumentIndex.objects.filter(C('my_number') > 2)
@@ -116,18 +119,28 @@ in Python, such as ``IN`` and ``BETWEEN``::
     >>> e = (C('my_number') > 2) |And| e
     >>> DocumentIndex.objects.filter(e)
 
-Like in Django, this query is lazy. Once you perform it,
+Like in Django, these queries are lazy and cached. Once you perform it,
 it does the following:
 
-1. convert the expression to SphinxQL;
+1. converts itself to SphinxQL;
 2. hit Sphinx database with that expression;
 3. convert results to ``DocumentIndex`` instances;
-4. hit Django database to retrieve respective ``Document`` instances;
+4. hit Django database to retrieve the respective ``Document`` instances;
 5. annotate ``Document`` instances with the respective ``DocumentIndex`` instances;
 6. returns ``Document`` instances.
 
-The query is lazy in respect to point 2; once it is executed, it performs
-two consecutive hits on both databases.
+Specifically, the query is lazy in respect to point 2; once it is executed, it
+performs two hits, one on each database.
+
+You can customize Django's queryset (e.g. for annotation) using ``queryset``::
+
+    q = DocumentIndex.objects.filter(sphinx_filtering)
+    q.queryset = q.queryset.filter(django_filtering)
+
+You can only perform operations on the ``queryset`` that still return a query.
+
+ * If an object is filtered out by any query, it is excluded.
+ * If an ordering is given in Sphinx, Django ordering is ignored.
 
 text search
 ^^^^^^^^^^^
@@ -138,16 +151,19 @@ SphinxQL has a reserved keyword ``MATCH`` to implement textual searches.
 A textual search always performs two distinct operations: 1. filter results,
 2. attribute weights to results::
 
-    >>> q = DocumentIndex.objects.filter(...).match('@my_text toys for babies')
+    >>> q = DocumentIndex.objects.match('@my_text toys for babies')
     >>> isinstance(q[0], Document)  # True
 
 The syntax for ``match`` is described in Sphinx documentation for EQS_.
-Results in this way are ordered according to relevance given by the text search.
+Unless there is an order already defined, the results are ordered
+according to relevance given by the match.
 
 Current limitations with Django
 -------------------------------
 
 * Only supports ``mysql`` and ``postgres`` backends (constraint of Sphinx engine)
+* Null values are considered empty strings or 0 (constraint of Sphinx engine)
+* Only supports dates and times since 1970 (constraint of Sphinx engine)
 
 .. _author note:
 
@@ -155,6 +171,5 @@ Author's note
 -------------
 
 Django-SphinxQL currently uses its own SQL expression API and QuerySets.
-However, Django 1.8 plans to allow custom lookup expressions and custom SQL
-expressions. Once this API is established, the is a probability to migrate to
-it and the notation to produce queries may be changed to the one used in Django.
+However, Django 1.7/1.8 plans an API to allow custom lookup expressions and custom
+SQL expressions. Once this API is established, we may try to migrate to it.

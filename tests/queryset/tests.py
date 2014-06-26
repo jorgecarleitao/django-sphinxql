@@ -1,13 +1,15 @@
 import datetime
 from unittest import expectedFailure
 
+from django.db.models import Sum
+
 from sphinxql.core.base import Or
 from sphinxql.exceptions import NotSupportedError
 from sphinxql.query import QuerySet
 from sphinxql.sql import C, Between
 
 from .indexes import DocumentIndex
-from .models import Document
+from .models import Document, Author
 
 from tests import SphinxQLTestCase
 
@@ -193,3 +195,19 @@ class ManyTestCase(SphinxQLTestCase):
 
         q = DocumentIndex.objects.match('@text What')
         self.assertEqual(len(q), 100)
+
+    def test_change_queryset(self):
+
+        q = DocumentIndex.objects.match('@text What')
+        q.queryset = q.queryset.filter(number__lte=40)
+        self.assertEqual(len(q), 20)
+
+        q.queryset = q.queryset.annotate(sum=Sum('number'))
+        for x in q:
+            self.assertTrue(hasattr(x, 'sum'))
+
+    def test_wrong_model(self):
+
+        q = DocumentIndex.objects.match('@text What')
+        with self.assertRaises(TypeError):
+            q.queryset = Author.objects.all()
