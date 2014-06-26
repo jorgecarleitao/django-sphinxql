@@ -1,7 +1,7 @@
 import shutil
-from unittest import TestCase
 
 from django.conf import settings
+from django.test import TestCase
 
 from sphinxql import configuration
 from sphinxql.configuration import call_process

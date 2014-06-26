@@ -19,12 +19,13 @@ class QuerySet(object):
         # We keep it here.
         self._match = ''
 
-        self._fetch_all_cache = None
+        self._result_cache = None
+        self._fetch_cache = None
 
         self._set_default_fields(self.query)
 
-    def _reset_cache(self):
-        self._fetch_all_cache = None
+    def reset_cache(self):
+        self._result_cache = None
 
     @property
     def queryset(self):
@@ -32,19 +33,24 @@ class QuerySet(object):
 
     @queryset.setter
     def queryset(self, queryset):
-        self._reset_cache()
+        self.reset_cache()
         if queryset.model != self._index.Meta.model:
             raise TypeError("You cannot set Django QuerySet of a different model.")
         self._queryset = queryset
 
     def _fetch_all(self):
-        if self._fetch_all_cache is None:
-            clone = self.query.clone()
-            if self._match:
-                clone.where = self._add_condition(clone.where, Match(String(self._match)))
+        """
+        Fetches by hitting Sphinx
+        """
+        if self._fetch_cache is not None:
+            return self._fetch_cache
 
-            self._fetch_all_cache = list(iter(clone))
-        return self._fetch_all_cache
+        clone = self.query.clone()
+        if self._match:
+            clone.where = self._add_condition(clone.where, Match(String(self._match)))
+
+        self._fetch_cache = list(clone)
+        return self._fetch_cache
 
     def _parse_results(self):
         for result in self._fetch_all():
@@ -64,22 +70,27 @@ class QuerySet(object):
         Each model gets the attribute `search_result` with the respective
         match
         """
+        if self._result_cache is not None:
+            return self._result_cache
         # hit Sphinx
-        id_list = [entry[0] for entry in list(self._fetch_all())]
+        id_list = [entry[0] for entry in self._fetch_all()]
         indexes = dict([(obj.id, obj) for obj in self._parse_results()])
 
         # hit Django
         models = self.queryset.in_bulk(id_list)
+
+        self._result_cache = []
 
         # exclude objects excluded by Django query
         for id in id_list:
             if id in models:
                 # annotate `search_result`
                 models[id].search_result = indexes[id]
-                yield models[id]
+                self._result_cache.append(models[id])
+        return self._result_cache
 
     def __iter__(self):
-        return self._parsed_models()
+        return iter(self._parsed_models())
 
     def __len__(self):
         return len(list(iter(self)))
@@ -87,11 +98,14 @@ class QuerySet(object):
     def __getitem__(self, item):
         if not isinstance(item, (slice, int)):
             raise TypeError
-
         if isinstance(item, slice):
             if item.stop is None:
                 raise NotSupportedError('Sphinx does not support unbounded slicing.')
 
+        if self._result_cache is not None:
+            return self._result_cache[item]
+
+        if isinstance(item, slice):
             offset = item.start or 0
             count = item.stop - offset
 

@@ -211,3 +211,16 @@ class ManyTestCase(SphinxQLTestCase):
         q = DocumentIndex.objects.match('@text What')
         with self.assertRaises(TypeError):
             q.queryset = Author.objects.all()
+
+    def test_data_is_cached(self):
+        query = DocumentIndex.objects.all()
+        with self.assertNumQueries(1):
+            list(query)
+            list(query)
+
+    def test_one_django_hit(self):
+        query = DocumentIndex.objects.all()
+        with self.assertNumQueries(1):
+            len(query)
+            query[0:20]
+            list(query)
