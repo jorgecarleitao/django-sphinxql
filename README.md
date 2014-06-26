@@ -7,7 +7,7 @@ This API allows you to:
 * index Django models.
 * full text search on indexed models.
 
-All documentation is in the directory `docs`.
+All documentation is in the directory `docs` and is [available online](https://readthedocs.org/projects/django-sphinxql/)
 
 All tests are in the directory `tests`. To run them, use
 
