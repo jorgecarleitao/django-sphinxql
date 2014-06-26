@@ -3,42 +3,44 @@ SphinxQL Queries
 
 .. currentmodule:: sphinxql
 
-This section of the documentation is about the a low-level API,
-i.e. how to construct raw queries. For the high level API, see
-:doc:`queryset`.
+This section of the documentation explains how to construct expressions.
+To build queries, see :doc:`queryset`.
 
-Sphinx uses a dialect of SQL, SphinxQL, to build queries for searching.
-Django-SphinxQL exposes this dialect in Python using a low-level API.
+The basic unit of SphinxQL is the :class:`~columns.Column`. In Django-SphinxQL,
+a :class:`Field` is a ``Column`` and thus the easiest way to identify a column is
+to use::
 
-Let's say you want to refer to the column ``column_name``.
-In SphinxQL, you would use ``SELECT column_name FROM index_name``.
-In Django-SphinxQL, you use the expression ``C``::
+    >>> from myapp.indexes import PostIndex
+    >>> PostIndex.text  # a column
 
-    >>> from sphinxql.sql import Query, C
-    >>> q = Query()
-    >>> q.select.append(C('column_name'))
-    >>> q.fromm.append(DocumentIndex)
-    >>> print(q.as_sql())
+When using a :class:`QuerySet`, the following statements are equivalent::
 
-``select`` is a list-like object that accepts any expression. For instance::
+    >>> from sphinxql.sql import C
+    >>> PostIndex.objects.filter(C('text'))
+    >>> PostIndex.objects.filter(PostIndex.text)
 
-    >>> custom_select = C('weight')**2 + C('number')
-    >>> q.select.append(custom_select)
-    >>> q.select.insert(0, custom_select*2)
-    >>> q.fromm.append(index)
-    >>> q.sql()
-    "SELECT POW(weight,2), POW(weight,2)*2 FROM index_name"
+``C('text')`` is an helper that is resolved by the ``QuerySet`` to ``PostIndex.text``
+(or returns an error if ``PostIndex`` doesn't have a :class:`fields.Field` ``text``).
 
-The query is lazy and is executed against the database when you iterate over it,
-e.g. using::
+Given a column, you can apply any Python operator to it::
 
-    >>> list(q)
+    >>> my_expression = PostIndex.number**2 + PostIndex.series
+    >>> PostIndex.objects.filter(my_expression > 2)
+    >>> my_expression += 2
+    >>> my_expression = my_expression > 2
 
-To filter results (using ``WHERE``), the notation is the same::
+.. warning::
+    Django-SphinxQL still does not type-check operations:
+    it can query ``'hi hi' + 2 < 4`` if you pass a wrong type expression.
 
-    >>> from sphinxql.sql import And
-    >>> q.where = C('weight')**2 + C('votes') < 10
-    >>> q.where = q.where |And| (C('votes') > 0)
+.. _Infix: http://code.activestate.com/recipes/384122-infix-operators/
+
+Because Python does not allow to create arbitrary operators, we implement
+the so called Infix_::
+
+    >>> from sphinxql.sql import In
+    >>> my_expression = PostIndex.number |In| (2, 3)
+    >>> my_expression = my_expression |And| (PostIndex.number > -5)
 
 The following operators are defined:
 
@@ -47,7 +49,8 @@ The following operators are defined:
     * ``|NotIn|``
     * ``|Between|``
 
-Notice that you can also construct queries using datetimes and dates.
+Time intervals are not defined in SphinxQL, so you can only compare dates
+and times.
 
 SQLExpression
 ~~~~~~~~~~~~~
@@ -84,7 +87,7 @@ For instance::
 
     C('votes') < 10
 
-is automatically translated to ``SmallerThan(C('votes'), Integer(10))``.
+is translated to ``SmallerThan(C('votes'), Integer(10))``.
 
 Operations
 ----------
@@ -125,7 +128,8 @@ Inside this function, Sphinx allows a `dedicated syntax`_ to filter text against
 the Sphinx index. In Django-Sphinxql, such filter is defined as a string inside a
 ``Match`` is a string::
 
-    >>> q.where = Match('hello & world') & C('votes') > 0
+    >>> expression = Match('hello & world') |AND| (C('votes') > 0)
 
 Sphinx only allows one ``MATCH`` per query; it is the developer responsibility to
-guarantee that this happens.
+guarantee that this happens. :meth:`query.QuerySet.match` automatically guarantees
+this.

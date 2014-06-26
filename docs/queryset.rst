@@ -1,8 +1,10 @@
 QuerySet
 ========
 
-This document declares the API of the query set, i.e. the object like
-``DocumentIndex.objects.all()``.
+.. currentmodule:: sphinxql.query
+
+This document declares the API of the query set, the object returned
+by ``DocumentIndex.objects.all()``.
 
 .. class:: QuerySet
 
@@ -12,17 +14,13 @@ This document declares the API of the query set, i.e. the object like
     The QuerySet uses the same ideas as a Django QuerySet: it is lazy, allows
     chaining, and caches results.
 
-    Currently, it can be used to *filter*, *order by* and *translate* Sphinx
-    results into Django models instances.
-
     Formally, a ``QuerySet`` is initialized with one parameter, the index it is
     bound to::
 
         >>> q = QuerySet(DocumentIndex)
 
-        The following methods are implemented:
-
-    After that, you can perform the following operations:
+    Currently, it can be used to *filter*, *order by* and *search* Django models
+    instances:
 
     .. method:: filter(*conditions)
 
@@ -45,7 +43,7 @@ This document declares the API of the query set, i.e. the object like
     .. method:: match(extended_query)
 
         Adds a filter to text-search using Sphinx extended query syntax
-        defined on the string ``extended_query``.
+        defined by the string ``extended_query``.
 
         Subsequent calls of this method concatenate the string.
 
@@ -56,8 +54,6 @@ This document declares the API of the query set, i.e. the object like
 
     .. method:: order_by(*expressions)
 
-        Each expression can only be either ``-C(<...>)`` or ``C(<...>)``.
-
         Adds ``ORDER BY`` clauses to the existing ones. For instance::
 
             >>> q = q.order(a)
@@ -66,9 +62,14 @@ This document declares the API of the query set, i.e. the object like
         order results by ``a``, then by ``b``, like Django.
         Use ``order_by()`` to clear the ordering.
 
-        There are two particular builtin columns, ``C('@id')`` and ``C('@relevance')``
+        Each expression can only be either ``-C(...)`` or ``C(...)``.
+
+        There are two built-in columns, ``C('@id')`` and ``C('@relevance')``
         that are used to order by Django ``id`` and by relevance of the results,
         respectively.
 
     You can extract results from a query either iterating over it or slicing it.
     Slicing does not allow further filtering.
+
+    The results are always a list of Django models for convenience.
+

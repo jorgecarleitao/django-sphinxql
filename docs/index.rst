@@ -27,9 +27,10 @@ in your Django website. Specifically, this API allows you to:
    :maxdepth: 2
 
    howto
-   configuration
    indexes
    expression
+   queryset
+   configuration
 
 Installation
 ------------
