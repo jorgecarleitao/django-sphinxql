@@ -3,20 +3,19 @@ Sphinx Configuration
 
 .. currentmodule:: configuration
 
-Sphinx configuration file, ``sphinx.conf``, consists of a set of ``source``s,
-``index``es, an ``indexer``, and a ``searchd``.
+Running Sphinx requires a Sphinx configuration file, ``sphinx.conf``,
+that configures Sphinx. It consists of a set of ``source``s, ``index``es, an
+``indexer``, and a ``searchd``.
 
-Django-SphinxQL uses a ``Configurator`` to construct these items and output a
-``sphinx.conf``. So, the Python code *defines* the ``sphinx.conf``.
+Django-SphinxQL provides an API to construct the file from your Python code.
+The main item of this API is the :class:`Index`, that defines an ORM for Sphinx.
 
-While Sphinx allows to use different sources to a given index, Django-SphinxQL
-uses one source per index (which we denote from now on as ``index``).
+When an :class:`Index` is defined, it is registered in a :class:`IndexConfigurator`
+that is responsible to translate it to ``sphinx.conf``.
 
-This is done using an :class:`Index`: a class that maps models from an ORM to data
-structures of Sphinx.
+:class:`Index` only contains part of the configuration; this document introduces
+how you can introduce any configuration to Sphinx.
 
-These indexes are registered in to a :class:`IndexConfigurator`
-that is responsible to translate them to ``sphinx.conf`` syntax.
 
 Index configurator
 ^^^^^^^^^^^^^^^^^^
@@ -26,23 +25,27 @@ Index configurator
 .. class:: IndexConfigurator
 
     Django-SphinxQL uses this class to build and output ``sphinx.conf``.
-    It gathers information from the following places:
+
+    It has one entry point :meth:`register`, called automatically when :class:`~sphinxql.indexes.Index`
+    is defined. On registering an index, it gathers information from three places:
 
     * Django ``settings``.
-    * the :class:`indexes.Index`es defined in the different installed apps, in particular from their:
-      * :class:`fields`
-      * :class:`indexes.Index.Meta`
+    * :class:`~sphinxql.fields.Field` of the index
+    * :class:`~sphinxql.indexes.Index.Meta` of the index
 
     From ``django.settings``, it uses the following information:
 
     * ``INDEXES.PATH``: The directory where the database is created.
-    * ``INDEXES.sphinx_path``: The directory where sphinx-related files are created.
+    * ``INDEXES.sphinx_path``: The directory where sphinx-related files are created (e.g. ``sphinx.conf``)
     * ``INDEXES.indexer_params``: a dictionary with additional parameters for the :class:`IndexerConfiguration`.
     * ``INDEXES.searchd_params``: a dictionary with additional parameters for the :class:`SearchdConfiguration`.
     * ``INDEXES.source_params``: a dictionary with additional parameters for the :class:`SourceConfiguration`.
     * ``INDEXES.index_params``: a dictionary with additional parameters for the :class:`IndexConfiguration`.
 
-    From the fields, it uses its type, and from the Meta, the following is allowed
+    From the fields, it uses its ``type`` and ``model_attr`` and from the Meta, it uses:
+
+    * ``model``: the Django model the index is respective to
+    * ``model``: the Django model the field is
 
 
 source configuration
