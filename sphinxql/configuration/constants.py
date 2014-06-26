@@ -70,7 +70,13 @@ source_multi_valued_parameters = (
 
 source_parameters = source_single_valued_parameters + source_multi_valued_parameters
 
-source_mandatory_parameters = ('type', 'sql_query')
+source_mandatory_parameters = ('type',
+                               'sql_host',
+                               'sql_user',
+                               'sql_pass',
+                               'sql_db',
+                               'sql_query',
+)
 
 source_limited_options = {
     'type': ('mysql', 'pgsql', 'mssql', 'xmlpipe', 'xmlpipe2', 'odbc'),
@@ -149,6 +155,11 @@ index_parameters = (
     'global_idf',
 )
 
+index_mandatory_parameters = (
+    'source',
+    'path',
+)
+
 indexer_parameters = (
     'mem_limit',
     'max_iops',
@@ -211,6 +222,10 @@ searchd_parameters = (
     'rt_merge_iops',
     'rt_merge_maxiosize',
     'predicted_time_costs',
+)
+
+searchd_mandatory_parameters = (
+    'pid_file',
 )
 
 reserved_keywords = (

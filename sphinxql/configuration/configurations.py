@@ -11,6 +11,7 @@ class Configuration(object):
     """
     type_name = None
     valid_parameters = tuple()
+    mandatory_parameters = tuple()
 
     def __init__(self, name, params, parent=None):
         self.validate_parameters(params)
@@ -62,12 +63,22 @@ class Configuration(object):
         Checks that all parameters `params` are valid
         for this configuration.
         """
+        missing_parameters = set(cls.mandatory_parameters)
+
         for param in params:
             if param not in cls.valid_parameters:
                 raise ImproperlyConfigured(
-                    'Invalid parameter "{0}" for "{1}". '
-                    'See Sphinx documentation of "{1} configuration".'
+                    'Invalid parameter "{0}" for {1}. '
+                    'See Sphinx documentation for "{1} configuration".'
                     .format(param, cls.type_name))
+            if param in missing_parameters:
+                missing_parameters.remove(param)
+
+        if missing_parameters:
+            raise ImproperlyConfigured(
+                'Missing parameters {0} for "{1}". '
+                'See Sphinx documentation for {1} configuration.'
+                .format(missing_parameters, cls.type_name))
 
 
 class IndexConfiguration(Configuration):
@@ -76,6 +87,7 @@ class IndexConfiguration(Configuration):
     """
     type_name = 'index'
     valid_parameters = constants.index_parameters
+    mandatory_parameters = constants.index_mandatory_parameters
 
 
 class SourceConfiguration(Configuration):
@@ -84,6 +96,7 @@ class SourceConfiguration(Configuration):
     """
     type_name = 'source'
     valid_parameters = constants.source_parameters
+    mandatory_parameters = constants.source_mandatory_parameters
 
 
 class IndexerConfiguration(Configuration):
@@ -103,6 +116,7 @@ class SearchdConfiguration(Configuration):
     """
     type_name = 'searchd'
     valid_parameters = constants.searchd_parameters
+    mandatory_parameters = constants.searchd_mandatory_parameters
 
     def __init__(self, params):
         super(SearchdConfiguration, self).__init__('', params)
