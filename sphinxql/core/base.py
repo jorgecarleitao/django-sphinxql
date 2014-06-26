@@ -2,7 +2,7 @@ import datetime
 import calendar
 
 from django.conf import settings
-from django.utils.timezone import utc, get_current_timezone
+from django.utils.timezone import get_current_timezone
 
 
 def convert(other):
