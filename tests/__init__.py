@@ -6,6 +6,12 @@ from django.conf import settings
 from sphinxql import configuration
 from sphinxql.configuration import call_process
 
+try:
+    import pymysql
+    pymysql.install_as_MySQLdb()
+except ImportError:
+    pass
+
 
 class SphinxQLTestCase(TestCase):
 
