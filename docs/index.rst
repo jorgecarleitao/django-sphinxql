@@ -162,6 +162,7 @@ Current limitations with Django
 -------------------------------
 
 * Only supports ``mysql`` and ``postgres`` backends (constraint of Sphinx engine)
+* Does not allow to index data from lookups
 * Null values are considered empty strings or 0 (constraint of Sphinx engine)
 * Only supports dates and times since 1970 (constraint of Sphinx engine)
 
