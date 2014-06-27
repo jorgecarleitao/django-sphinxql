@@ -36,5 +36,14 @@ class SphinxQLTestCase(TestCase):
         configuration.indexes_configurator.path = settings.INDEXES['PATH']
 
     def index(self):
+        """
+        Called on SetUp to index the models for the first time.
+        """
         configuration.index()
         configuration.start()
+
+    def reindex(self):
+        """
+        Called on tests to reindex data if new models are created.
+        """
+        configuration.index()
