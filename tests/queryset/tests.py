@@ -70,10 +70,10 @@ class QueryTestCase(SphinxQLTestCase):
         self.assertEqual(len(q), 0)
 
     def test_match(self):
-        q = self.query.match('@text NICE')
+        q = self.query.search('@text NICE')
         self.assertEqual(len(q), 1)
 
-        q = self.query.match('@text DDDDFDFD')
+        q = self.query.search('@text DDDDFDFD')
         self.assertEqual(len(q), 0)
 
     @expectedFailure
@@ -184,21 +184,21 @@ class ManyTestCase(SphinxQLTestCase):
         self.assertEqual(q[0].number, 200)
 
         # default ordering is @relevance.
-        q = DocumentIndex.objects.match('@text What')
+        q = DocumentIndex.objects.search('@text What')
         self.assertEqual(q[0].number, 200)
 
         # override default ordering
-        q = DocumentIndex.objects.match('@text What').order_by().order_by(C('number'))
+        q = DocumentIndex.objects.search('@text What').order_by().order_by(C('number'))
         self.assertEqual(q[0].number, 2)
 
     def test_match_order(self):
 
-        q = DocumentIndex.objects.match('@text What')
+        q = DocumentIndex.objects.search('@text What')
         self.assertEqual(len(q), 100)
 
     def test_change_queryset(self):
 
-        q = DocumentIndex.objects.match('@text What')
+        q = DocumentIndex.objects.search('@text What')
         q.queryset = q.queryset.filter(number__lte=40)
         self.assertEqual(len(q), 20)
 
@@ -208,7 +208,7 @@ class ManyTestCase(SphinxQLTestCase):
 
     def test_wrong_model(self):
 
-        q = DocumentIndex.objects.match('@text What')
+        q = DocumentIndex.objects.search('@text What')
         with self.assertRaises(TypeError):
             q.queryset = Author.objects.all()
 

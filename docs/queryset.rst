@@ -40,7 +40,7 @@ by ``DocumentIndex.objects.all()``.
         The conditions can be any :doc:`expression` that evaluates to a boolean
         value.
 
-    .. method:: match(extended_query)
+    .. method:: search(extended_query)
 
         Adds a filter to text-search using Sphinx extended query syntax
         defined by the string ``extended_query``.
@@ -50,7 +50,7 @@ by ``DocumentIndex.objects.all()``.
         If no ordering is set on the query, this method sets it to be according to
         relevance of the results given by the text search, formally equivalent to::
 
-            q.match(...).order_by(C('@relevance'))
+            q.search(...).order_by(C('@relevance'))
 
     .. method:: order_by(*expressions)
 

@@ -12,8 +12,8 @@ class Manager(object):
     def filter(self, *args):
         return QuerySet(self._index).filter(*args)
 
-    def match(self, expression):
-        return QuerySet(self._index).match(expression)
+    def search(self, expression):
+        return QuerySet(self._index).search(expression)
 
     def order_by(self, *args):
         return QuerySet(self._index).order_by(*args)

@@ -135,7 +135,7 @@ class QuerySet(object):
             clone.query.where = self._add_condition(clone.query.where, condition)
         return clone
 
-    def match(self, extended_query):
+    def search(self, extended_query):
         assert isinstance(extended_query, str)
         # concatenate the query
         self._match += ' %s' % extended_query

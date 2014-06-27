@@ -85,30 +85,30 @@ a set of objects and respective relevance to the query.
 Sphinx implements searches, restricted to **indexed attributes**, using
 its `extented query syntax`_, that Django-SphinxQL handles explicitly::
 
-    >>> DocumentIndex.objects.match('hello | world')
-    >>> DocumentIndex.objects.match('@(my_summary_index, my_text_index) hello world')
+    >>> DocumentIndex.objects.search('hello | world')
+    >>> DocumentIndex.objects.search('@(my_summary_index, my_text_index) hello world')
 
-Successive ``match`` join the final query, i.e.::
+Successive ``search`` join the final query, i.e.::
 
-    >>> DocumentIndex.objects.match('hello').match('world')
+    >>> DocumentIndex.objects.search('hello').search('world')
 
 is equivalent to::
 
-    >>> DocumentIndex.objects.match('hello world')
+    >>> DocumentIndex.objects.search('hello world')
 
-because there can only be one ``Match`` per query in Sphinx.
+because there can only be one ``search`` per query in Sphinx.
 
 How to sort
 -----------
 
-By default, results are sorted by Django ``id`` if there is no ``match`` call,
-and by relevance if there is a ``match``. If you want to use other
+By default, results are sorted by Django ``id`` if there is no ``search`` call,
+and by relevance if there is a ``search``. If you want to use other
 sorting, e.g. by attributes, use the function ``order_by()``::
 
-    >>> DocumentIndex.objects.match('hello world').order_by(C('number'), -C('date))
+    >>> DocumentIndex.objects.search('hello world').order_by(C('number'), -C('date))
 
 Sorting currently only supports single columns (i.e. no expressions). Django's
-``id`` is ``C('@id')`` and the search relevance (when ``Match`` is used), is
+``id`` is ``C('@id')`` and the search relevance (when ``search`` is used), is
 ``C('@relevance')``.
 
 Results format
@@ -116,7 +116,7 @@ Results format
 
 The results are a list of Django models instances of the ``DocumentIndex``::
 
-    >>> q = DocumentIndex.objects.match('hello world').order_by(C('number'), -C('date))
+    >>> q = DocumentIndex.objects.search('hello world').order_by(C('number'), -C('date))
     >>> assert isinstance(q[0], Document)
     >>> assert isinstance(q[0].search_result, DocumentIndex)
 

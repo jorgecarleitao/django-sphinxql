@@ -131,5 +131,5 @@ the Sphinx index. In Django-Sphinxql, such filter is defined as a string inside 
     >>> expression = Match('hello & world') |AND| (C('votes') > 0)
 
 Sphinx only allows one ``MATCH`` per query; it is the developer responsibility to
-guarantee that this happens. :meth:`query.QuerySet.match` automatically guarantees
+guarantee that this happens. :meth:`query.QuerySet.search` automatically guarantees
 this.

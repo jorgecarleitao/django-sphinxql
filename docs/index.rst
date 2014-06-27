@@ -152,12 +152,12 @@ SphinxQL has a reserved keyword ``MATCH`` to implement textual searches.
 A textual search always performs two distinct operations: 1. filter results,
 2. attribute weights to results::
 
-    >>> q = DocumentIndex.objects.match('@my_text toys for babies')
+    >>> q = DocumentIndex.objects.search('@my_text toys for babies')
     >>> isinstance(q[0], Document)  # True
 
-The syntax for ``match`` is described in Sphinx documentation for EQS_.
+The syntax for ``search`` is described in Sphinx documentation for EQS_.
 Unless there is an order already defined, the results are ordered
-according to relevance given by the match.
+according to relevance given by the search.
 
 Current limitations with Django
 -------------------------------
