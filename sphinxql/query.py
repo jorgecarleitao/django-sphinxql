@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from .core.query import Query
 from .core import base
 from sphinxql.exceptions import NotSupportedError
@@ -38,7 +40,7 @@ class QuerySet(object):
             raise TypeError("You cannot set Django QuerySet of a different model.")
         self._queryset = queryset
 
-    def _fetch_all(self):
+    def _fetch_raw(self):
         """
         Fetches by hitting Sphinx
         """
@@ -52,8 +54,11 @@ class QuerySet(object):
         self._fetch_cache = list(clone)
         return self._fetch_cache
 
-    def _parse_results(self):
-        for result in self._fetch_all():
+    def _parsed_results(self):
+        """
+        Hits Sphinx and parses the results into indexes instances.
+        """
+        for result in self._fetch_raw():
             instance = self._index()
 
             setattr(instance, 'id', result[0])
@@ -64,25 +69,25 @@ class QuerySet(object):
 
             yield instance
 
-    def _parsed_models(self):
+    def _annotated_models(self):
         """
-        Match the results to the models.
-        Each model gets the attribute `search_result` with the respective
-        match
+        Returns the models annotated with `search_result`. Uses `_result_cache`.
         """
         if self._result_cache is not None:
             return self._result_cache
-        # hit Sphinx
-        id_list = [entry[0] for entry in self._fetch_all()]
-        indexes = dict([(obj.id, obj) for obj in self._parse_results()])
+
+        # hit Sphinx;
+        # ordered results with index objects populated
+        indexes = OrderedDict([(index_obj.id, index_obj)
+                               for index_obj in self._parsed_results()])
 
         # hit Django
-        models = self.queryset.in_bulk(id_list)
-
-        self._result_cache = []
+        models = self.queryset.in_bulk(indexes.keys())
 
         # exclude objects excluded by Django query
-        for id in id_list:
+        # annotate models with search_result.
+        self._result_cache = []
+        for id in indexes:
             if id in models:
                 # annotate `search_result`
                 models[id].search_result = indexes[id]
@@ -90,7 +95,7 @@ class QuerySet(object):
         return self._result_cache
 
     def __iter__(self):
-        return iter(self._parsed_models())
+        return iter(self._annotated_models())
 
     def __len__(self):
         return len(list(iter(self)))
