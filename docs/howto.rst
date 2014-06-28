@@ -51,7 +51,7 @@ such conditions on ``DocumentIndex.number``.
 Django-SphinxQL borrows ideas from Django, with a slightly different syntax::
 
     >>> from sphinxql.sql import C
-    >>> q = DocumentIndex.objects.filter(C('number') > 2)
+    >>> q = DocumentIndex.objects.search_filter(C('number') > 2)
 
 I.e. Django-SphinxQL does not support lookups, and implements conditions
 directly in Python. It currently supports:
@@ -69,7 +69,7 @@ in Python using Inflix_::
     >>> from datetime import date
     >>> e = C('number') |In| [2, 3, 4, 5]
     >>> e1 = C('date') |Between| (date(2014, 1, 1), date(2014, 2, 1))
-    >>> q = DocumentIndex.objects.filter(e |And| e1)
+    >>> q = DocumentIndex.objects.search_filter(e |And| e1)
 
 Dates and times work as in Django: ``USE_TZ`` and ``TIME_ZONE`` are supported.
 Care must taken since Sphinx represents times in a unix timestamp, that is
@@ -103,9 +103,9 @@ How to sort
 
 By default, results are sorted by Django ``id`` if there is no ``search`` call,
 and by relevance if there is a ``search``. If you want to use other
-sorting, e.g. by attributes, use the function ``order_by()``::
+sorting, e.g. by attributes, use the function ``search_order_by()``::
 
-    >>> DocumentIndex.objects.search('hello world').order_by(C('number'), -C('date))
+    >>> DocumentIndex.objects.search('hello world').search_order_by(C('number'), -C('date))
 
 Sorting currently only supports single columns (i.e. no expressions). Django's
 ``id`` is ``C('@id')`` and the search relevance (when ``search`` is used), is
@@ -116,7 +116,7 @@ Results format
 
 The results are a list of Django models instances of the ``DocumentIndex``::
 
-    >>> q = DocumentIndex.objects.search('hello world').order_by(C('number'), -C('date))
+    >>> q = DocumentIndex.objects.search('hello world').search_order_by(C('number'), -C('date))
     >>> assert isinstance(q[0], Document)
     >>> assert isinstance(q[0].search_result, DocumentIndex)
 

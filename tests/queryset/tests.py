@@ -165,7 +165,7 @@ class ManyTestCase(SphinxQLTestCase):
         self.assertEqual(len(query), 100)
 
     def test_slice(self):
-        query = DocumentIndex.objects.all()
+        query = QuerySet(DocumentIndex)
 
         self.assertEqual(len(query), 100)
         self.assertEqual(len(query[:20]), 20)
@@ -176,20 +176,25 @@ class ManyTestCase(SphinxQLTestCase):
 
         self.assertEqual(len(query[:40]), 40)
 
+        self.assertEqual(query[0].number, 2)
+
     def test_order_by(self):
-        q = DocumentIndex.objects.order_by(C('number'))
+        q = QuerySet(DocumentIndex).order_by(C('number'))
         self.assertEqual(q[0].number, 2)
 
-        q = DocumentIndex.objects.order_by(-C('number'))
+        q = QuerySet(DocumentIndex).order_by(-C('number'))
         self.assertEqual(q[0].number, 200)
 
         # default ordering is @relevance.
-        q = DocumentIndex.objects.search('@text What')
+        q = QuerySet(DocumentIndex).search('@text What')
         self.assertEqual(q[0].number, 200)
 
         # override default ordering
-        q = DocumentIndex.objects.search('@text What').order_by().order_by(C('number'))
+        q = QuerySet(DocumentIndex).search('@text What').order_by().order_by(C('number'))
         self.assertEqual(q[0].number, 2)
+
+        q = QuerySet(DocumentIndex).order_by(-C('number'))
+        self.assertEqual(q[0].number, 200)
 
     def test_match_order(self):
 
@@ -199,16 +204,16 @@ class ManyTestCase(SphinxQLTestCase):
     def test_change_queryset(self):
 
         q = DocumentIndex.objects.search('@text What')
-        q.queryset = q.queryset.filter(number__lte=40)
+        q = q.filter(number__lte=40)
         self.assertEqual(len(q), 20)
 
-        q.queryset = q.queryset.annotate(sum=Sum('number'))
+        q = q.annotate(sum=Sum('number'))
         for x in q:
             self.assertTrue(hasattr(x, 'sum'))
 
     def test_wrong_model(self):
 
-        q = DocumentIndex.objects.search('@text What')
+        q = QuerySet(DocumentIndex).search('@text What')
         with self.assertRaises(TypeError):
             q.queryset = Author.objects.all()
 

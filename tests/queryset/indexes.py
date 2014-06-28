@@ -14,4 +14,3 @@ class DocumentIndex(indexes.Index):
 
     class Meta:
         model = Document
-        query = Document.objects.all()

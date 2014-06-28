@@ -1,4 +1,4 @@
-from .query import QuerySet
+from .query import SearchQuerySet
 
 
 class Manager(object):
@@ -7,13 +7,13 @@ class Manager(object):
         self._index = index
 
     def all(self):
-        return QuerySet(self._index).all()
+        return SearchQuerySet(self._index).all()
 
     def filter(self, *args):
-        return QuerySet(self._index).filter(*args)
+        return SearchQuerySet(self._index).filter(*args)
 
     def search(self, expression):
-        return QuerySet(self._index).search(expression)
+        return SearchQuerySet(self._index).search(expression)
 
     def order_by(self, *args):
-        return QuerySet(self._index).order_by(*args)
+        return SearchQuerySet(self._index).order_by(*args)

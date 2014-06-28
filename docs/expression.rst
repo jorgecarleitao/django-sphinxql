@@ -16,8 +16,8 @@ to use::
 When using a :class:`QuerySet`, the following statements are equivalent::
 
     >>> from sphinxql.sql import C
-    >>> PostIndex.objects.filter(C('text'))
-    >>> PostIndex.objects.filter(PostIndex.text)
+    >>> PostIndex.objects.search_filter(C('text'))
+    >>> PostIndex.objects.search_filter(PostIndex.text)
 
 ``C('text')`` is an helper that is resolved by the ``QuerySet`` to ``PostIndex.text``
 (or returns an error if ``PostIndex`` doesn't have a :class:`fields.Field` ``text``).
@@ -25,7 +25,7 @@ When using a :class:`QuerySet`, the following statements are equivalent::
 Given a column, you can apply any Python operator to it::
 
     >>> my_expression = PostIndex.number**2 + PostIndex.series
-    >>> PostIndex.objects.filter(my_expression > 2)
+    >>> PostIndex.objects.search_filter(my_expression > 2)
     >>> my_expression += 2
     >>> my_expression = my_expression > 2
 

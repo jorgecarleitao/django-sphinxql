@@ -62,8 +62,8 @@ To configure Django-SphinxQL, add ``INDEXES`` to settings::
 Index your models
 -----------------
 
-You have a model ``Document`` with a ``summary``, a ``text`` and a ``number``.
-To index it, first create a file ``indexes.py`` with::
+Assume you have a model ``Document`` with a ``summary``, a ``text`` and a
+``number``. To index it, first create a file ``indexes.py`` with::
 
     from sphinxql import indexes, fields
     from myapp import models
@@ -103,13 +103,13 @@ SQL filter
 The interface of Django-SphinxQL is close to Django, but without lookups::
 
     >>> from sphinx.sql import C
-    >>> q = DocumentIndex.objects.filter(C('my_number') > 2)
+    >>> q = DocumentIndex.objects.search_filter(C('my_number') > 2)
     >>> isinstance(q[0], Document)  # True
 
 All Python operators are overridden in ``C`` such that ``C('my_number') > 2``
 is interpreted in SQL as ``WHERE my_number > 2``. You can write::
 
-    >>> DocumentIndex.objects.filter(C('my_number') + 2 > 2)
+    >>> DocumentIndex.objects.search_filter(C('my_number') + 2 > 2)
 
 The only exception is the Python operator ``|``. This is used to create
 operators that are defined in SQL but are not defined or cannot be overridden
@@ -118,7 +118,7 @@ in Python, such as ``IN`` and ``BETWEEN``::
     >>> from sphinxql.sql import C, In, And
     >>> e = C('my_number') |In| (2, 3, 4)
     >>> e = (C('my_number') > 2) |And| e
-    >>> DocumentIndex.objects.filter(e)
+    >>> DocumentIndex.objects.search_filter(e)
 
 Like in Django, these queries are lazy and cached. Once you perform it,
 it does the following:
@@ -135,8 +135,8 @@ performs two hits, one on each database.
 
 You can customize Django's queryset (e.g. for annotation) using ``queryset``::
 
-    q = DocumentIndex.objects.filter(sphinx_filtering)
-    q.queryset = q.queryset.filter(django_filtering)
+    q = DocumentIndex.objects.search_filter(sphinx_filtering)
+    q.queryset = q.queryset.search_filter(django_filtering)
 
 You can only perform operations on the ``queryset`` that still return a query.
 
