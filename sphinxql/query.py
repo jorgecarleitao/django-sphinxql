@@ -26,9 +26,6 @@ class QuerySet(object):
 
         self._set_default_fields(self.query)
 
-    def reset_cache(self):
-        self._result_cache = None
-
     def _fetch_raw(self):
         """
         Fetches by hitting Sphinx
@@ -88,15 +85,12 @@ class QuerySet(object):
     def all(self):
         return self
 
-    def _resolve_columns(self, expression):
-        return expression.resolve_columns(self._index)
-
     def filter(self, *conditions):
         clone = self.clone()
 
         for condition in conditions:
             assert isinstance(condition, base.SQLExpression)
-            condition = self._resolve_columns(condition)
+            condition = condition.resolve_columns(self._index)
             assert condition.type() == Bool
             clone.query.where = self._add_condition(clone.query.where, condition)
         return clone
@@ -106,12 +100,10 @@ class QuerySet(object):
         # concatenate the query
         self._match += ' %s' % extended_query
 
-        clone = self.clone()
-        return clone
+        return self.clone()
 
     def order_by(self, *args):
         """
-        Sets the order, erasing previous ordering.
         Only accepts Neg, C, Columns
         """
         clone = self.clone()
@@ -126,10 +118,11 @@ class QuerySet(object):
             if isinstance(arg, Neg):
                 ascending = False
                 arg = arg.value[0]
-            if isinstance(arg, Column):
-                column = arg
-            else:
+                assert isinstance(arg, (C, Column))
+            if isinstance(arg, C):
                 column = arg.resolve_columns(clone._index)
+            else:
+                column = arg
 
             clone.query.order_by.append(column, ascending=ascending)
 

@@ -12,10 +12,12 @@ from .models import Document
 from tests import SphinxQLTestCase
 
 
-class QueryTestCase(SphinxQLTestCase):
-
+class SimpleQuerySetTestCase(SphinxQLTestCase):
+    """
+    Tests basic operations of QuerySet
+    """
     def setUp(self):
-        super(QueryTestCase, self).setUp()
+        super(SimpleQuerySetTestCase, self).setUp()
 
         self.document = Document.objects.create(
             summary="This is a summary", text="What a nice text",
@@ -32,18 +34,49 @@ class QueryTestCase(SphinxQLTestCase):
 
     def tearDown(self):
         Document.objects.all().delete()
-        super(QueryTestCase, self).tearDown()
+        super(SimpleQuerySetTestCase, self).tearDown()
 
     def test_lookup_fail(self):
         self.assertRaises(KeyError, self.query.filter, C('numberERROR') >= 2)
 
     def test_filter(self):
+        self.assertEqual(len(self.query), 1)
+
         q = self.query.filter(C('number') >= 2)
         self.assertEqual(len(q), 1)
 
+        q = self.query.filter(C('number') < 2)
+        self.assertEqual(len(q), 0)
+
+    def test_filter_between_integer(self):
+
+        self.query = self.query.filter(C('number') |Between| (1, 3))
+        self.assertEqual(len(self.query), 1)
+
+        self.query = self.query.filter(C('number') |Between| (10, 20))
+        self.assertEqual(len(self.query), 0)
+
+    def test_filter_between_dates(self):
+        self.query = self.query.filter(C('date') |Between| (datetime.date(2014, 1, 1),
+                                                            datetime.date(2016, 1, 1)))
+        self.assertEqual(len(self.query), 1)
+
+        self.query = self.query.filter(C('date') |Between| (datetime.date(2000, 1, 1),
+                                                            datetime.date(2001, 1, 1)))
+        self.assertEqual(len(self.query), 0)
+
+    def test_filter_between_datetimes(self):
+        self.query = self.query.filter(C('added_time') |Between| (datetime.datetime(2014, 1, 1),
+                                                                  datetime.datetime(2016, 1, 1)))
+        self.assertEqual(len(self.query), 1)
+
+        self.query = self.query.filter(C('added_time') |Between| (datetime.datetime(2000, 1, 1),
+                                                                  datetime.datetime(2001, 1, 1)))
+        self.assertEqual(len(self.query), 0)
+
     def test_two_filters(self):
         q = self.query.filter(C('number') >= 2)
-        q = q.filter(C('number') >= 1)
+        q = q.filter(C('date') == datetime.date(2015, 2, 2))
         self.assertEqual(len(q), 1)
 
     @expectedFailure
@@ -64,7 +97,7 @@ class QueryTestCase(SphinxQLTestCase):
         q = self.query.filter(C('summary') == 'This')
         self.assertEqual(len(q), 0)
 
-    def test_match(self):
+    def test_search(self):
         q = self.query.search('@text NICE')
         self.assertEqual(len(q), 1)
 
@@ -106,37 +139,11 @@ class QueryTestCase(SphinxQLTestCase):
         self.assertEqual(results[0].added_time, self.document.added_time)
         self.assertEqual(results[0].number, self.document.number)
 
-    def test_between_integer(self):
 
-        self.query = self.query.filter(C('number') |Between| (1, 3))
-        self.assertEqual(len(self.query), 1)
-
-        self.query = self.query.filter(C('number') |Between| (10, 20))
-        self.assertEqual(len(self.query), 0)
-
-    def test_between_dates(self):
-        self.query = self.query.filter(C('date') |Between| (datetime.date(2014, 1, 1),
-                                                            datetime.date(2016, 1, 1)))
-        self.assertEqual(len(self.query), 1)
-
-        self.query = self.query.filter(C('date') |Between| (datetime.date(2000, 1, 1),
-                                                            datetime.date(2001, 1, 1)))
-        self.assertEqual(len(self.query), 0)
-
-    def test_between_datetimes(self):
-        self.query = self.query.filter(C('added_time') |Between| (datetime.datetime(2014, 1, 1),
-                                                                  datetime.datetime(2016, 1, 1)))
-        self.assertEqual(len(self.query), 1)
-
-        self.query = self.query.filter(C('added_time') |Between| (datetime.datetime(2000, 1, 1),
-                                                                  datetime.datetime(2001, 1, 1)))
-        self.assertEqual(len(self.query), 0)
-
-
-class ManyTestCase(SphinxQLTestCase):
+class QuerySetTestCase(SphinxQLTestCase):
 
     def setUp(self):
-        super(ManyTestCase, self).setUp()
+        super(QuerySetTestCase, self).setUp()
 
         for x in range(1, 101):
             Document.objects.create(
@@ -149,13 +156,12 @@ class ManyTestCase(SphinxQLTestCase):
 
     def tearDown(self):
         Document.objects.all().delete()
-        super(ManyTestCase, self).tearDown()
+        super(QuerySetTestCase, self).tearDown()
 
-    def test_basic(self):
-        query = DocumentIndex.objects.all()
-        self.assertEqual(len(query), 100)
+    def test_len(self):
+        self.assertEqual(len(QuerySet(DocumentIndex)), 100)
 
-    def test_slice(self):
+    def test_getitem(self):
         query = QuerySet(DocumentIndex)
 
         self.assertEqual(len(query), 100)
@@ -164,8 +170,6 @@ class ManyTestCase(SphinxQLTestCase):
         self.assertEqual(len(query[90:110]), 10)
 
         self.assertRaises(NotSupportedError, query.__getitem__, slice(90, None))
-
-        self.assertEqual(len(query[:40]), 40)
 
         self.assertEqual(query[0].number, 2)
 
@@ -177,8 +181,7 @@ class ManyTestCase(SphinxQLTestCase):
         self.assertEqual(q[0].number, 200)
 
         q = QuerySet(DocumentIndex).search('@text What').order_by(C('@relevance'))
-        # most relevance is last, because has the most
-        # occurrences.
+        # most relevance is last, because has the most occurrences.
         self.assertEqual(q[0].number, 200)
 
         # other ordering
