@@ -1,15 +1,13 @@
 import datetime
 from unittest import expectedFailure
 
-from django.db.models import Sum
-
 from sphinxql.core.base import Or
 from sphinxql.exceptions import NotSupportedError
 from sphinxql.query import QuerySet
 from sphinxql.sql import C, Between
 
 from .indexes import DocumentIndex
-from .models import Document, Author
+from .models import Document
 
 from tests import SphinxQLTestCase
 
@@ -56,9 +54,6 @@ class QueryTestCase(SphinxQLTestCase):
         """
         q = self.query.filter(~(C('number') == 2))
         self.assertEqual(len(q), 0)
-
-    def test_manager(self):
-        list(DocumentIndex.objects.all())
 
     @expectedFailure
     def test_filter_string(self):
@@ -111,35 +106,31 @@ class QueryTestCase(SphinxQLTestCase):
         self.assertEqual(results[0].added_time, self.document.added_time)
         self.assertEqual(results[0].number, self.document.number)
 
-    def test_integer_between(self):
+    def test_between_integer(self):
 
         self.query = self.query.filter(C('number') |Between| (1, 3))
-        results = list(self.query)
-        self.assertEqual(len(results), 1)
+        self.assertEqual(len(self.query), 1)
 
         self.query = self.query.filter(C('number') |Between| (10, 20))
-        results = list(self.query)
-        self.assertEqual(len(results), 0)
+        self.assertEqual(len(self.query), 0)
 
     def test_between_dates(self):
-        self.query = self.query.filter(C('date') |Between| (datetime.date(2014, 1, 1), datetime.date(2016, 1, 1)))
-        results = list(self.query)
-        self.assertEqual(len(results), 1)
+        self.query = self.query.filter(C('date') |Between| (datetime.date(2014, 1, 1),
+                                                            datetime.date(2016, 1, 1)))
+        self.assertEqual(len(self.query), 1)
 
-        self.query = self.query.filter(C('date') |Between| (datetime.date(2000, 1, 1), datetime.date(2001, 1, 1)))
-        results = list(self.query)
-        self.assertEqual(len(results), 0)
+        self.query = self.query.filter(C('date') |Between| (datetime.date(2000, 1, 1),
+                                                            datetime.date(2001, 1, 1)))
+        self.assertEqual(len(self.query), 0)
 
     def test_between_datetimes(self):
         self.query = self.query.filter(C('added_time') |Between| (datetime.datetime(2014, 1, 1),
                                                                   datetime.datetime(2016, 1, 1)))
-        results = list(self.query)
-        self.assertEqual(len(results), 1)
+        self.assertEqual(len(self.query), 1)
 
         self.query = self.query.filter(C('added_time') |Between| (datetime.datetime(2000, 1, 1),
                                                                   datetime.datetime(2001, 1, 1)))
-        results = list(self.query)
-        self.assertEqual(len(results), 0)
+        self.assertEqual(len(self.query), 0)
 
 
 class ManyTestCase(SphinxQLTestCase):
@@ -187,39 +178,10 @@ class ManyTestCase(SphinxQLTestCase):
 
         # default ordering is @relevance.
         q = QuerySet(DocumentIndex).search('@text What')
+        # most relevance is last, because has the most
+        # occurrences.
         self.assertEqual(q[0].number, 200)
 
         # override default ordering
         q = QuerySet(DocumentIndex).search('@text What').order_by().order_by(C('number'))
         self.assertEqual(q[0].number, 2)
-
-        q = QuerySet(DocumentIndex).order_by(-C('number'))
-        self.assertEqual(q[0].number, 200)
-
-    def test_match_order(self):
-
-        q = DocumentIndex.objects.search('@text What')
-        self.assertEqual(len(q), 100)
-
-    def test_change_queryset(self):
-
-        q = DocumentIndex.objects.search('@text What')
-        q = q.filter(number__lte=40)
-        self.assertEqual(len(q), 20)
-
-        q = q.annotate(sum=Sum('number'))
-        for x in q:
-            self.assertTrue(hasattr(x, 'sum'))
-
-    def test_data_is_cached(self):
-        query = DocumentIndex.objects.all()
-        with self.assertNumQueries(1):
-            list(query)
-            list(query)
-
-    def test_one_django_hit(self):
-        query = DocumentIndex.objects.all()
-        with self.assertNumQueries(1):
-            len(query)
-            query[0:20]
-            list(query)

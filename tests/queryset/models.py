@@ -9,7 +9,3 @@ class Document(models.Model):
     added_time = models.DateTimeField()
 
     number = models.IntegerField()
-
-
-class Author(models.Model):
-    pass
