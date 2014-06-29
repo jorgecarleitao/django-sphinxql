@@ -61,3 +61,7 @@ def NotIn(element, set):
 @_Infix
 def Between(element, set):
     return sphinxql.core.base.Between(element, set)
+
+@_Infix
+def NotBetween(element, set):
+    return sphinxql.core.base.NotBetween(element, set)

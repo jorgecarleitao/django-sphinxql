@@ -283,6 +283,10 @@ class Between(Function):
             second=self._value[2].as_sql())
 
 
+class NotBetween(Between):
+    _function = 'NOT BETWEEN'
+
+
 #### Binary Functions
 
 class BinaryFunction(Function):

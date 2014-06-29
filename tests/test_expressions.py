@@ -2,7 +2,7 @@ from unittest import TestCase, expectedFailure
 import datetime
 
 from sphinxql.core.base import Function, Or
-from sphinxql.sql import Column, And, In, NotIn, Between
+from sphinxql.sql import Column, And, In, NotIn, Between, NotBetween
 from sphinxql.types import Integer, Bool, Date
 
 
@@ -137,6 +137,11 @@ class BooleansTestCase(TestCase):
         r = self.column |Between| (2, 3)
         self.assertEqual(r.type(), Bool)
         self.assertEqual(r.sql(), '`test` BETWEEN 2 AND 3')
+
+    def test_not_between(self):
+        r = self.column |NotBetween| (2, 3)
+        self.assertEqual(r.type(), Bool)
+        self.assertEqual(r.sql(), '`test` NOT BETWEEN 2 AND 3')
 
 
 class OtherTestCase(TestCase):
