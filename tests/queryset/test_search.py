@@ -50,4 +50,5 @@ class SearchQuerySetTestCase(SphinxQLTestCase):
         query = self.query.order_by('-number')
         self.assertEqual(query[0].number, 200)
 
+        query.search_mode = True
         self.assertEqual(query.search_order_by(C('@id'))[0].number, 2)

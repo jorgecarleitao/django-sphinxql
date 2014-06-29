@@ -216,7 +216,6 @@ class SearchQuerySet(query.QuerySet):
 
     def search_filter(self, *conditions):
         clone = self._clone()
-        clone.search_mode = True
         clone._sphinx_queryset = self._sphinx_queryset.filter(*conditions)
         return clone
 
@@ -228,7 +227,6 @@ class SearchQuerySet(query.QuerySet):
 
     def search_order_by(self, *columns):
         clone = self._clone()
-        clone.search_mode = True
         clone._sphinx_queryset.order_by(*columns)
         return clone
 

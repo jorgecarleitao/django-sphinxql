@@ -28,18 +28,27 @@ API for interacting with Sphinx from Django.
     a Django ``QuerySet``, and thus can be replaced on your code without any
     change.
 
-    When you apply any of these methods, ``SearchQuerySet`` assumes you want
-    to use Sphinx on it. Under this assumption, before interacting with Django
-    database, the queryset performs a search in Sphinx database with the query
-    built with the above methods:
+    When you apply :meth:`search`, ``SearchQuerySet`` assumes you want
+    to use Sphinx on it.
 
-    * filtering done by :meth:`search` is applied before Django's query, done
-      by restricting the ``id`` to the list of returned results.
-    * If any :meth:`search_order_by` is used, Django ordering is replaced by
-      the ordering returned by Sphinx.
+    .. attribute:: search_mode
 
-    Thus, at most, ``SearchQuerySet`` does 1 database hit in Sphinx's database,
-    followed by a Django database hit.
+        Defaults to `False`, and defines whether Sphinx should be used by the
+        `SearchQuerySet` during the database hit. Automatically set to `True`
+        when :meth:`search` is used.
+
+    When search mode is tru, before interacting with Django database, the queryset
+    performs a search in Sphinx database with the query built with the above
+    methods:
+
+    * filtering done by :meth:`search` and :meth:`search_filter` are applied
+      before Django's query, restricting the valid ``id``s of the Django's query.
+    * :meth:`search_order_by` orders the results
+
+    Notice that using search always invalidates the ordering you've set to Django.
+
+    At most, ``SearchQuerySet`` does 1 database hit in Sphinx's database, followed
+    by normal Django hit.
 
     .. _extended query syntax: http://sphinxsearch.com/docs/current.html#extended-syntax
 
@@ -58,7 +67,7 @@ API for interacting with Sphinx from Django.
             >>> q.search('@text Hello world')
 
         Searches for models with ``Hello world`` on the field ``text`` and orders
-        them by most relevant matches.
+        them by most relevance first.
 
         It supports arbitrary arguments to automatically restrict the search to a
         specific field; the following are equivalent::
@@ -95,9 +104,6 @@ API for interacting with Sphinx from Django.
         There are two built-in columns, ``C('@id')`` and ``C('@relevance')``,
         that are used to order by Django ``id`` and by relevance of the results,
         respectively.
-
-        Setting an order invalidates any Django-ordering applied to the
-        :class:`SearchQuerySet`.
 
     .. method:: __getitem__(item)
 
