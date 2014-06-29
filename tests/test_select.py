@@ -22,5 +22,6 @@ class SelectTestCase(TestCase):
 
         select.append(column, column.name)
         select.append(column*2, 'ss')
+        select.append(column*3)
 
-        self.assertEqual(select.sql(), '`id`, `test` AS test, `test` * 2 AS ss')
+        self.assertEqual(select.sql(), '`id`, `test` AS test, `test` * 2 AS ss, `test` * 3')
