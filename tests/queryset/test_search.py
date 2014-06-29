@@ -31,17 +31,17 @@ class SearchQuerySetTestCase(SphinxQLTestCase):
         Document.objects.all().delete()
         super(SearchQuerySetTestCase, self).tearDown()
 
-    def test_search(self):
+    def test_django_filter(self):
         query = self.query.filter(number__gt=190)
         self.assertEqual(len(query), 5)
 
-        self.assertEqual(len(query.search('nice')), 5)
+        q = query.search('@text text. What')
+        self.assertEqual(len(q), 5)
+        self.assertEqual(q[0].number, 200)
 
-        self.assertEqual(len(query.search('@text apple')), 0)
-        self.assertEqual(query.search('@text apple').count(), 0)
-
-        # all with high number have this particular sentence
-        self.assertEqual(len(query.search('@text "text. What"')), 5)
+        q = query.search('@text text. What').search_order_by(-C('@relevance'))
+        self.assertEqual(len(q), 5)
+        self.assertEqual(q[0].number, 192)
 
     def test_search_filter(self):
         self.assertEqual(len(self.query), 100)
@@ -77,3 +77,34 @@ class SearchQuerySetTestCase(SphinxQLTestCase):
             len(query)
             query[0:20]
             list(query)
+
+    def test_search_override_default_ordering(self):
+        self.assertEqual(self.query[0].number, 2)
+
+        q = self.query.search('@text What')
+        self.assertEqual(q[0].number, 200)
+
+    def test_search_doesnt_override_ordering(self):
+        q = self.query.search_order_by(C('number'))
+        self.assertEqual(q[0].number, 2)
+
+        q = q.search('@text What')
+        self.assertEqual(q[0].number, 2)
+
+    def test_django_ordering_override(self):
+        # this adds a search_order_by
+        q = self.query.search('@text What')
+        q1 = self.query.order_by('number')
+        self.assertEqual(q[0].number, 200)
+        self.assertEqual(q1[0].number, 2)
+
+        # Django order is ignored
+        q = q.order_by('number')
+        self.assertEqual(q[0].number, 200)
+
+    def test_django_order_not_overridden(self):
+        q = self.query.search('@text What').search_order_by()
+        self.assertEqual(q[0].number, 2)
+
+        q = q.order_by('-number')
+        self.assertEqual(q[0].number, 200)

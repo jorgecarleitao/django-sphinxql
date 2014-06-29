@@ -176,12 +176,11 @@ class ManyTestCase(SphinxQLTestCase):
         q = QuerySet(DocumentIndex).order_by(-C('number'))
         self.assertEqual(q[0].number, 200)
 
-        # default ordering is @relevance.
-        q = QuerySet(DocumentIndex).search('@text What')
+        q = QuerySet(DocumentIndex).search('@text What').order_by(C('@relevance'))
         # most relevance is last, because has the most
         # occurrences.
         self.assertEqual(q[0].number, 200)
 
-        # override default ordering
-        q = QuerySet(DocumentIndex).search('@text What').order_by().order_by(C('number'))
+        # other ordering
+        q = QuerySet(DocumentIndex).search('@text What').order_by(C('number'))
         self.assertEqual(q[0].number, 2)

@@ -71,9 +71,6 @@ class QuerySet(object):
             if item.stop is None:
                 raise NotSupportedError('Sphinx does not support unbounded slicing.')
 
-        if self._result_cache is not None:
-            return self._result_cache[item]
-
         if isinstance(item, slice):
             offset = item.start or 0
             count = item.stop - offset
@@ -110,9 +107,6 @@ class QuerySet(object):
         self._match += ' %s' % extended_query
 
         clone = self.clone()
-        if not clone.query.order_by:
-            clone = clone.order_by(C('@relevance'))
-
         return clone
 
     def order_by(self, *args):
@@ -169,6 +163,8 @@ class SearchQuerySet(query.QuerySet):
         super(SearchQuerySet, self).__init__(index.Meta.model, query, using)
         self._index = index
         self._sphinx_queryset = QuerySet(index)
+
+        self._result_cache = None
         self.search_mode = False
 
     def search_filter(self, *conditions):
@@ -180,6 +176,8 @@ class SearchQuerySet(query.QuerySet):
         clone = self._clone()
         clone.search_mode = True
         clone._sphinx_queryset = clone._sphinx_queryset.search(*extended_queries)
+        if not clone._sphinx_queryset.query.order_by:
+            clone = clone.search_order_by(C('@relevance'))
         return clone
 
     def search_order_by(self, *columns):
@@ -194,12 +192,11 @@ class SearchQuerySet(query.QuerySet):
         if self._result_cache is not None:
             return self._result_cache
 
-        # hit Sphinx;
-        # ordered results with index objects populated
+        # hit Sphinx: ordered results with index objects populated
         indexes = OrderedDict([(index_obj.id, index_obj)
                                for index_obj in self._sphinx_queryset])
 
-        # hit Django
+        # hit Django: ordered results with model objects populated
         self.search_mode = False
         models = self.filter(pk__in=indexes.keys())
         models = OrderedDict([(obj._get_pk_val(), obj) for obj in models])
@@ -208,7 +205,7 @@ class SearchQuerySet(query.QuerySet):
         # exclude objects excluded by Django query
         # annotate models with search_result.
         self._result_cache = []
-        if self.query.order_by:
+        if self._sphinx_queryset.query.order_by:
             for id in indexes:
                 if id in models:
                     # annotate `search_result`
@@ -233,7 +230,7 @@ class SearchQuerySet(query.QuerySet):
 
     def __getitem__(self, item):
         if self.search_mode:
-            return self._sphinx_queryset.__getitem__(item)
+            return self._annotated_models()[item]
         return super(SearchQuerySet, self).__getitem__(item)
 
     def count(self):
