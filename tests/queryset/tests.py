@@ -211,12 +211,6 @@ class ManyTestCase(SphinxQLTestCase):
         for x in q:
             self.assertTrue(hasattr(x, 'sum'))
 
-    def test_wrong_model(self):
-
-        q = QuerySet(DocumentIndex).search('@text What')
-        with self.assertRaises(TypeError):
-            q.queryset = Author.objects.all()
-
     def test_data_is_cached(self):
         query = DocumentIndex.objects.all()
         with self.assertNumQueries(1):

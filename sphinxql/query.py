@@ -11,15 +11,10 @@ from .sql import Match, And, Neg, C, Column
 
 class QuerySet(object):
 
-    def __init__(self, index, django_queryset=None):
+    def __init__(self, index):
         self._index = index
         self.query = Query()
         self.query.fromm.append(index)
-
-        if django_queryset is None:
-            self._queryset = self._index.Meta.model.objects.all()
-        else:
-            self._queryset = django_queryset
 
         # Sphinx: there can be only one match per query.
         # This is a global constraint on queries
@@ -33,17 +28,6 @@ class QuerySet(object):
 
     def reset_cache(self):
         self._result_cache = None
-
-    @property
-    def queryset(self):
-        return self._queryset
-
-    @queryset.setter
-    def queryset(self, queryset):
-        self.reset_cache()
-        if queryset.model != self._index.Meta.model:
-            raise TypeError("You cannot set Django QuerySet of a different model.")
-        self._queryset = queryset
 
     def _fetch_raw(self):
         """
@@ -74,43 +58,8 @@ class QuerySet(object):
 
             yield instance
 
-    def _annotated_models(self):
-        """
-        Returns the models annotated with `search_result`. Uses `_result_cache`.
-        """
-        if self._result_cache is not None:
-            return self._result_cache
-
-        # hit Sphinx;
-        # ordered results with index objects populated
-        indexes = OrderedDict([(index_obj.id, index_obj)
-                               for index_obj in self._parsed_results()])
-
-        # hit Django
-        self.queryset.search_mode = False
-        models = self.queryset.filter(pk__in=indexes.keys())
-        models = dict([(obj._get_pk_val(), obj) for obj in models])
-        self.queryset.search_mode = True
-
-        # exclude objects excluded by Django query
-        # annotate models with search_result.
-        self._result_cache = []
-        if self.query.order_by:
-            for id in indexes:
-                if id in models:
-                    # annotate `search_result`
-                    models[id].search_result = indexes[id]
-                    self._result_cache.append(models[id])
-        else:
-            for id in models:
-                if id in indexes:
-                    # annotate `search_result`
-                    models[id].search_result = indexes[id]
-                    self._result_cache.append(models[id])
-        return self._result_cache
-
     def __iter__(self):
-        return iter(self._annotated_models())
+        return iter(self._parsed_results())
 
     def __len__(self):
         return len(list(iter(self)))
@@ -208,7 +157,7 @@ class QuerySet(object):
         return where
 
     def clone(self):
-        clone = QuerySet(self._index, self._queryset)
+        clone = QuerySet(self._index)
         clone._match = self._match
         clone.query = self.query.clone()
         return clone
@@ -219,7 +168,7 @@ class SearchQuerySet(query.QuerySet):
     def __init__(self, index, query=None, using=None):
         super(SearchQuerySet, self).__init__(index.Meta.model, query, using)
         self._index = index
-        self._sphinx_queryset = QuerySet(index, self)
+        self._sphinx_queryset = QuerySet(index)
         self.search_mode = False
 
     def search_filter(self, *conditions):
@@ -230,22 +179,56 @@ class SearchQuerySet(query.QuerySet):
     def search(self, *extended_queries):
         clone = self._clone()
         clone.search_mode = True
-        clone._sphinx_queryset.search(*extended_queries)
+        clone._sphinx_queryset = clone._sphinx_queryset.search(*extended_queries)
         return clone
 
     def search_order_by(self, *columns):
         clone = self._clone()
-        clone._sphinx_queryset.order_by(*columns)
+        clone._sphinx_queryset = clone._sphinx_queryset.order_by(*columns)
         return clone
+
+    def _annotated_models(self):
+        """
+        Returns the models annotated with `search_result`. Uses `_result_cache`.
+        """
+        if self._result_cache is not None:
+            return self._result_cache
+
+        # hit Sphinx;
+        # ordered results with index objects populated
+        indexes = OrderedDict([(index_obj.id, index_obj)
+                               for index_obj in self._sphinx_queryset])
+
+        # hit Django
+        self.search_mode = False
+        models = self.filter(pk__in=indexes.keys())
+        models = OrderedDict([(obj._get_pk_val(), obj) for obj in models])
+        self.search_mode = True
+
+        # exclude objects excluded by Django query
+        # annotate models with search_result.
+        self._result_cache = []
+        if self.query.order_by:
+            for id in indexes:
+                if id in models:
+                    # annotate `search_result`
+                    models[id].search_result = indexes[id]
+                    self._result_cache.append(models[id])
+        else:
+            for id in models:
+                # annotate `search_result`
+                models[id].search_result = indexes[id]
+                self._result_cache.append(models[id])
+        return self._result_cache
 
     def __iter__(self):
         if self.search_mode:
-            return self._sphinx_queryset.__iter__()
+            return iter(self._annotated_models())
         return super(SearchQuerySet, self).__iter__()
 
     def __len__(self):
         if self.search_mode:
-            return self._sphinx_queryset.__len__()
+            return len(self._annotated_models())
         return super(SearchQuerySet, self).__len__()
 
     def __getitem__(self, item):
@@ -279,5 +262,4 @@ class SearchQuerySet(query.QuerySet):
         # sphinx related
         c.search_mode = self.search_mode
         c._sphinx_queryset = self._sphinx_queryset.clone()
-        c._sphinx_queryset.queryset = c
         return c
