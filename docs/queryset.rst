@@ -8,14 +8,16 @@ API for interacting with Sphinx from Django.
 
 .. class:: SearchQuerySet
 
-    ``SearchQuerySet`` extends Django's ``QuerySet`` to allow searching Sphinx;
-    This search is constructed by ``search*`` methods and is lazily applied to
-    the Django QuerySet before it hits Django's database.
+    ``SearchQuerySet`` extends Django's ``QuerySet`` to allow searching with
+    Sphinx; This search is constructed by ``search*`` methods and is lazily
+    applied to the Django QuerySet before it hits Django's database.
 
     Formally, a ``SearchQuerySet`` is initialized with one parameter, the index
     it is bound to::
 
         >>> q = SearchQuerySet(index, query=None, using=None)
+
+    that initializes Django's queryset from the :attr:`index.Meta.model`.
 
     The public API of ``SearchQuerySet`` is the same as ``QuerySet``, with
     the following additional methods:
@@ -37,18 +39,17 @@ API for interacting with Sphinx from Django.
         `SearchQuerySet` during the database hit. Automatically set to `True`
         when :meth:`search` is used.
 
-    When search mode is tru, before interacting with Django database, the queryset
-    performs a search in Sphinx database with the query built with the above
-    methods:
+    When ``search_mode`` is ``True``, before interacting with Django database,
+    the queryset performs a search in Sphinx database with the query built from
+    the above methods:
 
     * filtering done by :meth:`search` and :meth:`search_filter` are applied
-      before Django's query, restricting the valid ``id``s of the Django's query.
-    * :meth:`search_order_by` orders the results
-
-    Notice that using search always invalidates the ordering you've set to Django.
+      before Django's query, restricting the valid ``id``s in the Django's query.
+    * if any order is done by :meth:`search_order_by` orders the results,
+      the Django order is replaced.
 
     At most, ``SearchQuerySet`` does 1 database hit in Sphinx's database, followed
-    by normal Django hit.
+    by the Django hit.
 
     .. _extended query syntax: http://sphinxsearch.com/docs/current.html#extended-syntax
 
@@ -105,6 +106,9 @@ API for interacting with Sphinx from Django.
         that are used to order by Django ``id`` and by relevance of the results,
         respectively.
 
+        At the moment Django performs the database hit, if there is any ordering,
+        it replaces the Django order by.
+
     .. method:: __getitem__(item)
 
         Like in Django, returns either a single item or a list. There is one
@@ -132,5 +136,5 @@ API for interacting with Sphinx from Django.
         20 entries will return 20 entries with that filter.
 
     if Sphinx was used, model objects will be annotated with an attribute
-    ``search_result``, that contains the ``Index`` with the values retrieved
+    ``search_result`` that contains the ``Index`` with the values retrieved
     from Sphinx.

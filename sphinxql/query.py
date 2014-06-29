@@ -88,17 +88,25 @@ class QuerySet(object):
 
         # hit Django
         self.queryset.search_mode = False
-        models = self.queryset.in_bulk(indexes.keys())
+        models = self.queryset.filter(pk__in=indexes.keys())
+        models = dict([(obj._get_pk_val(), obj) for obj in models])
         self.queryset.search_mode = True
 
         # exclude objects excluded by Django query
         # annotate models with search_result.
         self._result_cache = []
-        for id in indexes:
-            if id in models:
-                # annotate `search_result`
-                models[id].search_result = indexes[id]
-                self._result_cache.append(models[id])
+        if self.query.order_by:
+            for id in indexes:
+                if id in models:
+                    # annotate `search_result`
+                    models[id].search_result = indexes[id]
+                    self._result_cache.append(models[id])
+        else:
+            for id in models:
+                if id in indexes:
+                    # annotate `search_result`
+                    models[id].search_result = indexes[id]
+                    self._result_cache.append(models[id])
         return self._result_cache
 
     def __iter__(self):
