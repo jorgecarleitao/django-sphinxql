@@ -27,7 +27,9 @@ class SphinxQLTestCase(TestCase):
 
         call_process(['mkdir', configuration.indexes_configurator.path], fail_silently=True)
 
-    def tearDown(self):
+        self.addCleanup(self.cleanup)
+
+    def cleanup(self):
         # This is required between tests because searchd
         # returns results even after removing the indexes.
         configuration.stop()
