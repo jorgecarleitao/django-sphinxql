@@ -1,13 +1,12 @@
 from collections import OrderedDict
+from copy import deepcopy
 
 from ..configuration.connection import Connection, DEFAULT_LIMIT_COUNT
+from ..exceptions import NotSupportedError
 from .base import CompilableSQL, All
 from .columns import IdColumn, Column
 
-
 # Sphinx sets a max of 5 columns in order by.
-from sphinxql.exceptions import NotSupportedError
-
 MAX_ORDER_BY_ALLOWED = 5
 
 
@@ -136,7 +135,8 @@ class Query(CompilableSQL):
 
     def clone(self):
         clone = Query()
-        clone._statements = self._statements.copy()
+        # deep because we want new statements
+        clone._statements = deepcopy(self._statements)
         return clone
 
 

@@ -6,7 +6,7 @@ from .core.query import Query
 from .core import base
 from sphinxql.exceptions import NotSupportedError
 from .types import Bool, String
-from .sql import Match, And, Neg, C, Column
+from .sql import Match, And, Neg, C, Column, All, Count
 
 
 class QuerySet(object):
@@ -33,12 +33,17 @@ class QuerySet(object):
         if self._fetch_cache is not None:
             return self._fetch_cache
 
+        self._fetch_cache = list(self._get_query())
+        return self._fetch_cache
+
+    def _get_query(self):
+        """
+        Returns a copy of the query exactly prior to hit db.
+        """
         clone = self.query.clone()
         if self._match:
             clone.where = self._add_condition(clone.where, Match(String(self._match)))
-
-        self._fetch_cache = list(clone)
-        return self._fetch_cache
+        return clone
 
     def _parsed_results(self):
         """
@@ -59,7 +64,9 @@ class QuerySet(object):
         return iter(self._parsed_results())
 
     def __len__(self):
-        return len(list(iter(self)))
+        if self._fetch_cache is not None:
+            return len(self._fetch_cache)
+        return self.count()
 
     def __getitem__(self, item):
         if not isinstance(item, (slice, int)):
@@ -84,6 +91,18 @@ class QuerySet(object):
 
     def all(self):
         return self
+
+    def count(self):
+        q = self._get_query()
+        q.select.clear()
+        q.select.append(Count(All()))
+
+        result = list(q)
+        if result:
+            # first row, second entry (first entry is row's `id`)
+            return result[0][1]
+        else:
+            return 0
 
     def filter(self, *conditions):
         clone = self.clone()

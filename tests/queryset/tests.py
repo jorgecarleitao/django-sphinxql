@@ -160,6 +160,10 @@ class QuerySetTestCase(SphinxQLTestCase):
 
     def test_len(self):
         self.assertEqual(len(QuerySet(DocumentIndex)), 100)
+        self.assertEqual(QuerySet(DocumentIndex).count(), 100)
+
+        self.assertEqual(len(QuerySet(DocumentIndex).search('@text adasdsa')), 0)
+        self.assertEqual(QuerySet(DocumentIndex).search('@text adasdsa').count(), 0)
 
     def test_getitem(self):
         query = QuerySet(DocumentIndex)

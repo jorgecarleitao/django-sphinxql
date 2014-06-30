@@ -231,6 +231,10 @@ class Match(UnitaryFunction):
     _function = 'MATCH'
 
 
+class Count(UnitaryFunction):
+    _function = 'COUNT'
+
+
 class Power(Function):
     _function = 'POW'
     _arguments_num = 2

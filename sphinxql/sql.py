@@ -1,4 +1,4 @@
-from .core.base import Match, Neg
+from .core.base import Match, Neg, Count, All
 from .core.columns import Column, IdColumn, WeightColumn
 
 
