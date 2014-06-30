@@ -170,6 +170,10 @@ class QuerySet(object):
 
 
 class SearchQuerySet(query.QuerySet):
+    """
+    A queryset to translate search results into Django models.
+    """
+    max_search_count = 1000
 
     def __init__(self, index, query=None, using=None):
         super(SearchQuerySet, self).__init__(index.Meta.model, query, using)
@@ -206,13 +210,11 @@ class SearchQuerySet(query.QuerySet):
 
         # hit Sphinx: ordered results with index objects populated
         indexes = OrderedDict([(index_obj.id, index_obj)
-                               for index_obj in self._sphinx_queryset])
+                               for index_obj in self._sphinx_queryset[:self.max_search_count]])
 
         # hit Django: ordered results with model objects populated
-        self.search_mode = False
-        models = self.filter(pk__in=indexes.keys())
-        models = OrderedDict([(obj._get_pk_val(), obj) for obj in models])
-        self.search_mode = True
+        clone = self._get_query(indexes.keys())
+        models = OrderedDict([(obj._get_pk_val(), obj) for obj in clone])
 
         # exclude objects excluded by Django query
         # annotate models with search_result.
@@ -230,6 +232,18 @@ class SearchQuerySet(query.QuerySet):
                 self._result_cache.append(models[id])
         return self._result_cache
 
+    def _get_query(self, id_list=None):
+        """
+        Returns a Django queryset restricted to the ids in `id_list`.
+        If `id_list` is None, hits Sphinx to retrieve it.
+        """
+        if id_list is None:
+            id_list = [index_obj.id for index_obj in self._sphinx_queryset[:self.max_search_count]]
+        clone = self._clone()
+        clone = clone.filter(pk__in=id_list)
+        clone.search_mode = False
+        return clone
+
     def __iter__(self):
         if self.search_mode:
             return iter(self._annotated_models())
@@ -237,7 +251,7 @@ class SearchQuerySet(query.QuerySet):
 
     def __len__(self):
         if self.search_mode:
-            return len(self._annotated_models())
+            return len(self._get_query())
         return super(SearchQuerySet, self).__len__()
 
     def __getitem__(self, item):
@@ -247,10 +261,7 @@ class SearchQuerySet(query.QuerySet):
 
     def count(self):
         if self.search_mode:
-            # todo: perform the count in Django correctly:
-            # we only need to add a new filter pk__in=id_list
-            # where id_list was computed from Sphinx.
-            return len(self)
+            return self._get_query().count()
         return super(SearchQuerySet, self).count()
 
     def _clone(self, klass=None, setup=False, **kwargs):

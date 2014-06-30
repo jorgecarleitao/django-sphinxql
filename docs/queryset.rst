@@ -31,7 +31,7 @@ API for interacting with Sphinx from Django.
     change.
 
     When you apply :meth:`search`, ``SearchQuerySet`` assumes you want
-    to use Sphinx on it.
+    to use Sphinx on it:
 
     .. attribute:: search_mode
 
@@ -49,7 +49,12 @@ API for interacting with Sphinx from Django.
       the Django order is replaced.
 
     At most, ``SearchQuerySet`` does 1 database hit in Sphinx's database, followed
-    by the Django hit.
+    by the Django hit. In :attr:`search_mode`, the ``SearchQuerySet`` has an upper limit:
+
+    .. attribute:: max_search_count
+
+        A class attribute defining the maximum number of entries returned by the
+        Sphinx hit. Currently hardcoded to 1000.
 
     .. _extended query syntax: http://sphinxsearch.com/docs/current.html#extended-syntax
 

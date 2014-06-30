@@ -34,6 +34,7 @@ class SearchQuerySetTestCase(SphinxQLTestCase):
     def test_django_filter(self):
         query = self.query.filter(number__gt=190)
         self.assertEqual(len(query), 5)
+        self.assertEqual(query[0].number, 192)
 
         q = query.search('@text text. What')
         self.assertEqual(len(q), 5)
@@ -54,6 +55,13 @@ class SearchQuerySetTestCase(SphinxQLTestCase):
 
         query.search_mode = True
         self.assertEqual(query.search_order_by(C('@id'))[0].number, 2)
+
+    def test_iter(self):
+        q = self.query.search('@text What').search_order_by()
+        i = 1
+        for x in q:
+            self.assertEqual(x.number, i*2)
+            i += 1
 
     def test_change_queryset(self):
 
@@ -108,3 +116,44 @@ class SearchQuerySetTestCase(SphinxQLTestCase):
 
         q = q.order_by('-number')
         self.assertEqual(q[0].number, 200)
+
+
+class HighNumberSearchQuerySetTestCase(SphinxQLTestCase):
+    """
+    Test for the case with more than 1000 entries
+    """
+    def setUp(self):
+        super(HighNumberSearchQuerySetTestCase, self).setUp()
+
+        for x in range(1, 1005):
+            Document.objects.create(
+                summary="This is a summary", text="What a nice text.",
+                date=datetime.date(2015, 2, 2) + datetime.timedelta(days=x),
+                added_time=datetime.datetime(2015, 4, 4, 12, 12, 12) + datetime.timedelta(days=x),
+                number=x)
+
+        self.index()
+
+        self.query = SearchQuerySet(DocumentIndex)
+
+    def tearDown(self):
+        Document.objects.all().delete()
+        super(HighNumberSearchQuerySetTestCase, self).tearDown()
+
+    def test_len(self):
+        self.assertEqual(len(self.query.search('nice')), 1000)
+        self.assertEqual(self.query.search('nice').count(), 1000)
+
+    def test_django_len(self):
+        query = self.query.filter(number__gte=95)  # exclude id in [1,94]
+        self.assertEqual(len(query), 910)
+        self.assertEqual(query.count(), 910)
+
+        # since search results are ordered by id, they are ids 1-1000,
+        # thus, the first 94 (id 1-94) + last 5 (id 1000-1005) are discarded
+        self.assertEqual(len(query.search('@text nice')), 906)
+        self.assertEqual(query.search('nice').count(), 906)
+
+        query = query.search_order_by(-C('@id'))
+        self.assertEqual(len(query.search('@text nice')), 910)
+        self.assertEqual(query.search('nice').count(), 910)
