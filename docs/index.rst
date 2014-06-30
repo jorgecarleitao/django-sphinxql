@@ -26,7 +26,6 @@ Django website. Specifically, this API allows you to:
 .. toctree::
    :maxdepth: 2
 
-   howto
    indexes
    queryset
    expression
