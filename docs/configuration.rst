@@ -1,21 +1,24 @@
 Sphinx Configuration
 ====================
 
+.. warning::
+
+    This part of the documentation is still for internal use and thus subject to
+    change.
+
 .. currentmodule:: configuration
 
 Running Sphinx requires a Sphinx configuration file, ``sphinx.conf``,
-that configures Sphinx. It consists of a set of ``source``s, ``index``es, an
+that configures Sphinx. It consists of a set of ``sources``, ``indexes``, an
 ``indexer``, and a ``searchd``.
 
-Django-SphinxQL provides an API to construct the file from your Python code.
-The main item of this API is the :class:`Index`, that defines an ORM for Sphinx.
+Django-SphinxQL provides an API to construct the ``sphinx.conf`` from your Python
+code. The main item of this API is the :class:`Index`, that defines an ORM for
+using Sphinx.
 
-When an :class:`Index` is defined, it is registered in a :class:`IndexConfigurator`
-that is responsible to translate it to ``sphinx.conf``.
-
-:class:`Index` only contains part of the configuration; this document introduces
-how you can introduce any configuration to Sphinx.
-
+When an :class:`~indexes.Index` is defined, it is registered in a
+:class:`~configuration.configurators.IndexConfigurator` that is responsible to
+translate it to ``sphinx.conf``.
 
 Index configurator
 ^^^^^^^^^^^^^^^^^^
@@ -26,27 +29,32 @@ Index configurator
 
     Django-SphinxQL uses this class to build and output ``sphinx.conf``.
 
-    It has one entry point :meth:`register`, called automatically when :class:`~sphinxql.indexes.Index`
-    is defined. On registering an index, it gathers information from three places:
+    It has one entry point :meth:`register`, called automatically when
+    :class:`~sphinxql.indexes.Index` is defined. On registering an index,
+    it gathers settings from three places:
 
     * Django ``settings``.
     * :class:`~sphinxql.fields.Field` of the index
     * :class:`~sphinxql.indexes.Index.Meta` of the index
 
-    From ``django.settings``, it uses the following information:
+    From ``django.settings``:
 
-    * ``INDEXES.PATH``: The directory where the database is created.
-    * ``INDEXES.sphinx_path``: The directory where sphinx-related files are created (e.g. ``sphinx.conf``)
-    * ``INDEXES.indexer_params``: a dictionary with additional parameters for the :class:`IndexerConfiguration`.
-    * ``INDEXES.searchd_params``: a dictionary with additional parameters for the :class:`SearchdConfiguration`.
-    * ``INDEXES.source_params``: a dictionary with additional parameters for the :class:`SourceConfiguration`.
-    * ``INDEXES.index_params``: a dictionary with additional parameters for the :class:`IndexConfiguration`.
+    * ``INDEXES['PATH']``: the directory where the database is created.
+    * ``INDEXES['sphinx_path']``: the directory where sphinx-related files are created (e.g. ``sphinx.conf``)
+    * ``INDEXES['indexer_params']``: a dictionary with additional parameters for
+      the :class:`~configuration.configurations.IndexerConfiguration`.
+    * ``INDEXES['searchd_params']``: a dictionary with additional parameters for
+      the :class:`~configuration.configurations.SearchdConfiguration`.
+    * ``INDEXES['source_params']``: a dictionary with additional parameters for
+      the :class:`~configuration.configurations.SourceConfiguration`.
+    * ``INDEXES['index_params']``: a dictionary with additional parameters for
+      the :class:`~configuration.configurations.IndexConfiguration`.
 
-    From the fields, it uses its ``type`` and ``model_attr`` and from the Meta, it uses:
+    From each field, it uses its ``type`` and ``model_attr`` and, from the
+    :class:`~sphinxql.indexes.Index.Meta`, it uses:
 
-    * ``model``: the Django model the index is respective to
-    * ``model``: the Django model the field is
-
+    * :class:`~sphinxql.indexes.Index.Meta.model`: the Django model the index is respective to.
+    * :class:`~sphinxql.indexes.Index.Meta.query`: the Django query the index is populated from.
 
 source configuration
 ^^^^^^^^^^^^^^^^^^^^
@@ -122,7 +130,6 @@ indexer configuration
 
         Returns a string with the parameters formatted according to
         the ``sphinx.conf`` syntax.
-
 
 searchd configuration
 ^^^^^^^^^^^^^^^^^^^^^

@@ -8,8 +8,8 @@ Django is a Web framework for building websites with relational databases;
 Sphinx is a search engine designed to be used in relational databases.
 Django-SphinxQL defines an ORM for using **Sphinx within Django**.
 
-As corollary, it allows you to implement full text search with Sphinx
-in your Django website. Specifically, this API allows you to:
+As corollary, it allows you to implement full text search with Sphinx in your
+Django website. Specifically, this API allows you to:
 
 1. Configure Sphinx with Python.
 2. Index Django models in Sphinx.
@@ -81,7 +81,7 @@ Then run::
     python manage.py index_sphinx
 
 This runs the query ``Document.objects.all()`` against your database,
-picking the data and indexing it. At this moment you may notice that some files
+picking the data and indexes it. At this moment you may notice that some files
 will be created in ``settings.INDEXES['PATH']``: Sphinx database is populated.
 
 Then, start Sphinx (only have to be started once)::
@@ -94,84 +94,35 @@ Search your indexes
 -------------------
 
 Sphinx uses two syntaxes: a dialect of SQL for ordering, filtering and
-aggregation - SphinxQL -, and an Sphinx-specific ``extended query syntax`` (EQS)
-for text search.
+aggregation - SphinxQL -, and an Sphinx-specific *extended query syntax* for text
+search.
 
-SQL filter
-^^^^^^^^^^
+Django-SphinxQL defines a subclass of Django ``QuerySet``,
+:class:`~sphinxql.query.SearchQuerySet`, that interfaces with all Sphinx-related
+operations. If you don't use extra functionality, it works as a normal ``QuerySet``.
 
-The interface of Django-SphinxQL is close to Django, but without lookups::
-
-    >>> from sphinx.sql import C
-    >>> q = DocumentIndex.objects.search_filter(C('my_number') > 2)
-    >>> isinstance(q[0], Document)  # True
-
-All Python operators are overridden in ``C`` such that ``C('my_number') > 2``
-is interpreted in SQL as ``WHERE my_number > 2``. You can write::
-
-    >>> DocumentIndex.objects.search_filter(C('my_number') + 2 > 2)
-
-The only exception is the Python operator ``|``. This is used to create
-operators that are defined in SQL but are not defined or cannot be overridden
-in Python, such as ``IN`` and ``BETWEEN``::
-
-    >>> from sphinxql.sql import C, In, And
-    >>> e = C('my_number') |In| (2, 3, 4)
-    >>> e = (C('my_number') > 2) |And| e
-    >>> DocumentIndex.objects.search_filter(e)
-
-Like in Django, these queries are lazy and cached. Once you perform it,
-it does the following:
-
-1. converts itself to SphinxQL;
-2. hit Sphinx database with that expression;
-3. convert results to ``DocumentIndex`` instances;
-4. hit Django database to retrieve the respective ``Document`` instances;
-5. annotate ``Document`` instances with the respective ``DocumentIndex`` instances;
-6. returns ``Document`` instances.
-
-Specifically, the query is lazy in respect to point 2; once it is executed, it
-performs two hits, one on each database.
-
-You can customize Django's queryset (e.g. for annotation) using ``queryset``::
-
-    q = DocumentIndex.objects.search_filter(sphinx_filtering)
-    q.queryset = q.queryset.search_filter(django_filtering)
-
-You can only perform operations on the ``queryset`` that still return a query.
-
- * If an object is filtered out by any query, it is excluded.
- * If an ordering is given in Sphinx, Django ordering is ignored.
-
-text search
-^^^^^^^^^^^
-
-.. _EQS: http://sphinxsearch.com/docs/current.html#extended-syntax
-
-SphinxQL has a reserved keyword ``MATCH`` to implement textual searches.
-A textual search always performs two distinct operations: 1. filter results,
-2. attribute weights to results::
+Sphinx has a dedicated syntax for text search that Django-SphinxQL accepts::
 
     >>> q = DocumentIndex.objects.search('@my_text toys for babies')
-    >>> isinstance(q[0], Document)  # True
 
-The syntax for ``search`` is described in Sphinx documentation for EQS_.
-Unless there is an order already defined, the results are ordered
-according to relevance given by the search.
+This particular query returns ``Documents`` restricted to the ones where
+"toys for babies" match in field ``my_text``. Once you perform it, it does the
+following:
 
-Current limitations with Django
--------------------------------
+1. hit Sphinx database and convert results to ``DocumentIndex`` instances;
+2. hit Django database to retrieve the respective ``Document`` instances;
+3. annotate ``Document`` instances with the respective ``DocumentIndex``
+   instances;
+4. returns ``Document`` instances.
+
+Step 2. is done using ``.filter(pk__in=[...])``. See :doc:`queryset` for more info.
+
+Current limitations
+-------------------
+
+.. _14030: https://code.djangoproject.com/ticket/14030
 
 * Only supports ``mysql`` and ``postgres`` backends (constraint of Sphinx engine)
-* Does not allow to index data from lookups
+* Does not allow to index data from lookups (constraint on Django ticket 14030_)
 * Null values are considered empty strings or 0 (constraint of Sphinx engine)
 * Only supports dates and times since 1970 (constraint of Sphinx engine)
-
-.. _author note:
-
-Author's note
--------------
-
-Django-SphinxQL currently uses its own SQL expression API and QuerySets.
-However, Django 1.7/1.8 plans an API to allow custom lookup expressions and custom
-SQL expressions. Once this API is established, we may try to migrate to it.

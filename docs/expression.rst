@@ -4,7 +4,7 @@ SphinxQL Queries
 .. currentmodule:: sphinxql
 
 This section of the documentation explains how to construct expressions.
-To build queries, see :doc:`queryset`.
+To use queries with Django, see :doc:`queryset`.
 
 The basic unit of SphinxQL is the :class:`~columns.Column`. In Django-SphinxQL,
 a :class:`Field` is a ``Column`` and thus the easiest way to identify a column is
@@ -35,10 +35,10 @@ Given a column, you can apply any Python operator to it::
 
 .. _Infix: http://code.activestate.com/recipes/384122-infix-operators/
 
-Because Python does not allow to create arbitrary operators, we implement
-the so called Infix_::
+Because Python does not allow to create arbitrary operators, Django-SphinxQL
+uses Infix_::
 
-    >>> from sphinxql.sql import In
+    >>> from sphinxql.sql import In, And
     >>> my_expression = PostIndex.number |In| (2, 3)
     >>> my_expression = my_expression |And| (PostIndex.number > -5)
 
@@ -48,9 +48,7 @@ The following operators are defined:
     * ``|In|``
     * ``|NotIn|``
     * ``|Between|``
-
-Time intervals are not defined in SphinxQL, so you can only compare dates
-and times.
+    * ``|NotBetween|``
 
 SQLExpression
 ~~~~~~~~~~~~~
@@ -72,8 +70,8 @@ Values
 
 .. class:: Value
 
-    Subclass of :class:`SQLExpression` for constant values. Implemented by the following
-    subclasses:
+    Subclass of :class:`SQLExpression` for constant values. Implemented by the
+    following subclasses:
 
     * ``Bool``
     * ``Integer``
@@ -82,12 +80,15 @@ Values
     * ``Date``
     * ``DateTime``
 
-Any ``SQLExpression`` that encounters a Python type converts it to any of these types.
-For instance::
+Any ``SQLExpression`` that encounters a Python type converts it to any of these
+types. For instance::
 
     C('votes') < 10
 
 is translated to ``SmallerThan(C('votes'), Integer(10))``.
+
+Notice that time intervals are not defined in SphinxQL, so you can only compare
+dates and times.
 
 Operations
 ----------
@@ -96,8 +97,8 @@ Operations
 
 .. class:: BinaryOperation
 
-    Subclass of :class:`SQLExpression` for binary operations. Implemented by the following
-    subclasses:
+    Subclass of :class:`SQLExpression` for binary operations. Implemented by the
+    following subclasses:
 
     * ``Plus``
     * ``Subtract``

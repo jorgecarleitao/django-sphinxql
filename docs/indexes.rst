@@ -4,9 +4,7 @@ Indexes API
 .. currentmodule:: sphinxql
 
 This document explains how Django-SphinxQL maps a Django model into a Sphinx
-index.
-
-For those in a hurry, here's the code::
+index::
 
     # indexes.py
     from sphinxql import fields, indexes
@@ -28,7 +26,7 @@ Index
 
 .. class:: indexes.Index
 
-    :class:`Index` is a ORM to Sphinx index a Django Model. It works in a similar
+    :class:`~indexes.Index` is a ORM to Sphinx-index a Django Model. It works in a similar
     fashion to a Django model: you set up the :class:`fields <fields.Field>`, and
     it constructs an index out of these fields.
 
@@ -42,8 +40,8 @@ Index
 
             The Django model, e.g. ``model = models.Post``
 
-        In case you want to restrict the particular instances that are going to
-        be indexed, you can use ``query``:
+        In case you want to the index to particular instances you can use the
+        attribute ``query``:
 
         .. attribute:: query
 
@@ -51,7 +49,7 @@ Index
             ``query = models.Post.filter(year__gt=2000)``.
 
     Only the attributes of the ``Index`` that are :class:`fields <fields.Field>`
-    are indexed.
+    are used by Django-SphinxQL.
 
     We recommend defining indexes in a ``indexes.py`` module, inside your app.
 
@@ -64,7 +62,7 @@ like Django, uses fields:
 .. class:: fields.Field
 
     A field to be added to the Sphinx database. A field must always be mapped to
-    a model field name. This is done on its initialization::
+    a Django model field. This is done on its initialization::
 
         my_indexed_text = Field('text')  # Index.Meta.model contains `text = ...`
 
