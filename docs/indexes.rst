@@ -100,7 +100,7 @@ uses fields:
     * ``DateTime``: attribute for date times (``sql_attr_timestamp``).
     * ``Float``: attribute for floats (``sql_attr_float``).
     * ``Bool``: attribute for booleans (``sql_attr_bool``).
-    * ``Integer``: attribute for integers (``sql_attr_uint``).
+    * ``Integer``: attribute for integers (``sql_attr_bigint``).
 
     .. _unix timestamp: https://en.wikipedia.org/wiki/Unix_time
 

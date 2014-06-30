@@ -26,7 +26,7 @@ class Integer(Field):
     """
     A Sphinx attribute (i.e. not indexed)
     """
-    _sphinx_field_name = 'sql_attr_uint'
+    _sphinx_field_name = 'sql_attr_bigint'
 
     def __init__(self, model_attr):
         super(Integer, self).__init__(types.Integer, model_attr)
