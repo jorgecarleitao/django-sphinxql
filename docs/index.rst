@@ -28,8 +28,8 @@ in your Django website. Specifically, this API allows you to:
 
    howto
    indexes
-   expression
    queryset
+   expression
    configuration
 
 Installation
