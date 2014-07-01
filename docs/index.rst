@@ -38,6 +38,15 @@ Installation
 
 Django-SphinxQL has no requirements besides Django and `Sphinx`_.
 
+To install Sphinx (locally or on a server)::
+
+    wget http://sphinxsearch.com/files/sphinx-2.1.8-release.tar.gz
+    tar -xf sphinx-2.1.8-release.tar.gz
+    cd sphinx-2.1.8-release
+    ./configure --prefix=$HOME
+    make
+    make install
+
 To install Django-SphinxQL, use::
 
     pip install git+https://github.com/jorgecarleitao/django-sphinxql.git
