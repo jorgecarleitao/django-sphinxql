@@ -34,3 +34,22 @@ class ConfiguratorTestCase(TestCase):
             class Index(indexes.Index):
                 class Meta:
                     model = OrderedDict
+
+    def test_multi_parameter(self):
+        index_configurator = IndexConfiguration('test',
+                                                OrderedDict([('source', 'test1'),
+                                                             ('type', ('test1', 'test2')),
+                                                             ('path', 'mypath')]))
+
+        expected = "index test \n{\n    source = test1\n    type = test1\n    type = test2\n    path = mypath\n}\n"
+
+        self.assertEqual(index_configurator.format_output(), expected)
+
+    def test_wrong_multi_parameter(self):
+        index_configurator = IndexConfiguration('test',
+                                                OrderedDict([('source', 'test1'),
+                                                             ('type', {'test1': 'test2'}),
+                                                             ('path', 'mypath')]))
+
+        with self.assertRaises(ImproperlyConfigured):
+            index_configurator._format_params()

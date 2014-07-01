@@ -25,7 +25,13 @@ class Configuration(object):
         for param_name in self.params:
             param_values = self.params[param_name]
             # if is not multi-valued, is a list with 1 item.
-            if not isinstance(param_values, list):
+            if not isinstance(param_values, (list, tuple, str, int)):
+                raise ImproperlyConfigured('Parameter "{0}" in "{1}" configuration '
+                                           'can only be a list, a tuple, an int '
+                                           'or a str.'
+                                           .format(param_name, self.type_name))
+
+            if not isinstance(param_values, (list, tuple)):
                 param_values = [param_values]
 
             for param_value in param_values:
