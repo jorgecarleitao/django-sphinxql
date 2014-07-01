@@ -17,7 +17,6 @@ source_single_valued_parameters = (
 
     'sql_column_buffers',
 
-    'sql_query_pre',
     'sql_query',
     'sql_joined_field',
     'sql_query_post',
@@ -34,6 +33,8 @@ source_single_valued_parameters = (
 )
 
 source_multi_valued_parameters = (
+    'sql_query_pre',
+
     'xmlpipe_attr_uint',
     'xmlpipe_attr_bigint',
     'xmlpipe_attr_bool',
@@ -70,20 +71,21 @@ source_multi_valued_parameters = (
 
 source_parameters = source_single_valued_parameters + source_multi_valued_parameters
 
-source_mandatory_parameters = ('type',
-                               'sql_host',
-                               'sql_user',
-                               'sql_pass',
-                               'sql_db',
-                               'sql_query',
+source_mandatory_parameters = (
+    'type',
+    'sql_host',
+    'sql_user',
+    'sql_pass',
+    'sql_db',
+    'sql_query',
 )
 
 source_limited_options = {
     'type': ('mysql', 'pgsql', 'mssql', 'xmlpipe', 'xmlpipe2', 'odbc'),
-    }
+}
 
 
-index_parameters = (
+index_single_valued_parameters = (
     'type',
     'source',
     'path',
@@ -136,6 +138,16 @@ index_parameters = (
     'blend_chars',
     'blend_mode',
     'rt_mem_limit',
+    'ha_strategy',
+    'bigram_freq_words',
+    'bigram_index',
+    'index_field_lengths',
+    'regexp_filter',
+    'stopwords_unstemmed',
+    'global_idf',
+)
+
+index_multi_valued_parameters = (
     'rt_field',
     'rt_attr_uint',
     'rt_attr_bool',
@@ -146,14 +158,9 @@ index_parameters = (
     'rt_attr_timestamp',
     'rt_attr_string',
     'rt_attr_json',
-    'ha_strategy',
-    'bigram_freq_words',
-    'bigram_index',
-    'index_field_lengths',
-    'regexp_filter',
-    'stopwords_unstemmed',
-    'global_idf',
 )
+
+index_parameters = index_single_valued_parameters + index_multi_valued_parameters
 
 index_mandatory_parameters = (
     'source',

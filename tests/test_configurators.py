@@ -18,38 +18,54 @@ class ConfiguratorTestCase(TestCase):
 
         self.assertEqual(index_configurator.format_output(), expected)
 
+    def test_multi_parameter_format(self):
+        index_configurator = IndexConfiguration('test',
+                                                OrderedDict([('source', 'test1'),
+                                                             ('type', 'test1'),
+                                                             ('rt_field', ['test1', 'test2']),
+                                                             ('path', 'mypath')]))
+
+        expected = "index test \n{\n" \
+                   "    source = test1\n" \
+                   "    type = test1\n" \
+                   "    rt_field = test1\n" \
+                   "    rt_field = test2\n" \
+                   "    path = mypath\n" \
+                   "}\n"
+
+        self.assertEqual(index_configurator.format_output(), expected)
+
     def test_wrong_parameter(self):
         self.assertRaises(ImproperlyConfigured,
-                          IndexConfiguration, 'test', {'source': 'test1', 'typ': 'tes1', 'path': 'mypath'})
+                          IndexConfiguration, 'test', {'source': 'test1',
+                                                       'typERROR': 'tes1',
+                                                       'path': 'mypath'})
 
     def test_missing_mandatory(self):
         self.assertRaises(ImproperlyConfigured,
-                          IndexConfiguration, 'test', {'source': 'test1', 'type': 'tes1'})
+                          IndexConfiguration, 'test', {'source': 'test1',
+                                                       'type': 'tes1'})
 
     def test_wrong_source_param(self):
         self.assertRaises(ImproperlyConfigured, add_source_conf_param, {}, 'asdas', 1)
+
+    def test_wrong_typed_parameter(self):
+        with self.assertRaises(ImproperlyConfigured):
+            IndexConfiguration('test',
+                               {'source': 'test1',
+                                'type': {'test1': 'test2'},
+                                'path': 'mypath'})
+
+    def test_wrong_typed_items(self):
+        with self.assertRaises(ImproperlyConfigured):
+            IndexConfiguration('test',
+                               {'source': 'test1',
+                                'type': 'test1',
+                                'rt_field': [{'test1'}, 'test2'],
+                                'path': 'mypath'})
 
     def test_not_a_model(self):
         with self.assertRaises(ImproperlyConfigured):
             class Index(indexes.Index):
                 class Meta:
                     model = OrderedDict
-
-    def test_multi_parameter(self):
-        index_configurator = IndexConfiguration('test',
-                                                OrderedDict([('source', 'test1'),
-                                                             ('type', ('test1', 'test2')),
-                                                             ('path', 'mypath')]))
-
-        expected = "index test \n{\n    source = test1\n    type = test1\n    type = test2\n    path = mypath\n}\n"
-
-        self.assertEqual(index_configurator.format_output(), expected)
-
-    def test_wrong_multi_parameter(self):
-        index_configurator = IndexConfiguration('test',
-                                                OrderedDict([('source', 'test1'),
-                                                             ('type', {'test1': 'test2'}),
-                                                             ('path', 'mypath')]))
-
-        with self.assertRaises(ImproperlyConfigured):
-            index_configurator._format_params()

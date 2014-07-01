@@ -12,6 +12,7 @@ class Configuration(object):
     type_name = None
     valid_parameters = tuple()
     mandatory_parameters = tuple()
+    multi_valued_parameters = tuple()
 
     def __init__(self, name, params, parent=None):
         self.validate_parameters(params)
@@ -25,12 +26,6 @@ class Configuration(object):
         for param_name in self.params:
             param_values = self.params[param_name]
             # if is not multi-valued, is a list with 1 item.
-            if not isinstance(param_values, (list, tuple, str, int)):
-                raise ImproperlyConfigured('Parameter "{0}" in "{1}" configuration '
-                                           'can only be a list, a tuple, an int '
-                                           'or a str.'
-                                           .format(param_name, self.type_name))
-
             if not isinstance(param_values, (list, tuple)):
                 param_values = [param_values]
 
@@ -71,18 +66,40 @@ class Configuration(object):
         """
         missing_parameters = set(cls.mandatory_parameters)
 
-        for param in params:
-            if param not in cls.valid_parameters:
+        for param_name in params:
+            # check if it is valid.
+            if param_name not in cls.valid_parameters:
                 raise ImproperlyConfigured(
                     'Invalid parameter "{0}" for {1}. '
                     'See Sphinx documentation for "{1} configuration".'
-                    .format(param, cls.type_name))
-            if param in missing_parameters:
-                missing_parameters.remove(param)
+                    .format(param_name, cls.type_name))
+
+            # check if it is mandatory.
+            if param_name in missing_parameters:
+                missing_parameters.remove(param_name)
+
+            # check if it is correctly typed.
+            if param_name in cls.multi_valued_parameters:
+                valid_types = (str, int, list, tuple)
+            else:
+                valid_types = (str, int)
+
+            if not isinstance(params[param_name], valid_types):
+                raise ImproperlyConfigured(
+                    'Parameter "{0}" in {1} must be instance of '
+                    '{2}.'.format(param_name, cls.type_name, valid_types))
+
+            # check if each entry of the iterable is correctly typed.
+            if isinstance(params[param_name], (list, tuple)):
+                for entry in params[param_name]:
+                    if not isinstance(entry, (str, int)):
+                        raise ImproperlyConfigured(
+                            'Item "{0}" of parameter "{1}" in {2} has wrong type.'
+                            .format(entry, param_name, cls.type_name))
 
         if missing_parameters:
             raise ImproperlyConfigured(
-                'Missing parameters {0} for "{1}". '
+                'Missing parameter(s) {0} for "{1}". '
                 'See Sphinx documentation for {1} configuration.'
                 .format(missing_parameters, cls.type_name))
 
@@ -94,6 +111,7 @@ class IndexConfiguration(Configuration):
     type_name = 'index'
     valid_parameters = constants.index_parameters
     mandatory_parameters = constants.index_mandatory_parameters
+    multi_valued_parameters = constants.index_multi_valued_parameters
 
 
 class SourceConfiguration(Configuration):
@@ -103,6 +121,7 @@ class SourceConfiguration(Configuration):
     type_name = 'source'
     valid_parameters = constants.source_parameters
     mandatory_parameters = constants.source_mandatory_parameters
+    multi_valued_parameters = constants.source_multi_valued_parameters
 
 
 class IndexerConfiguration(Configuration):
