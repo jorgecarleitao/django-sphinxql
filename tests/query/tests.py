@@ -1,5 +1,4 @@
 import datetime
-from unittest import expectedFailure
 
 from sphinxql.core.query import Query
 from sphinxql.sql import Match
@@ -105,16 +104,4 @@ class QueryTestCase(SphinxQLTestCase):
 
     def test_match(self):
         self.query.where = Match(String("foo"))
-        self.assertEqual(len(self.query), 1)
-
-    @expectedFailure
-    def test_match_unicode(self):
-        """
-        See issue #3.
-        """
-        Author.objects.create(first_name='cão', last_name='bar', number=1,
-                              time=datetime.datetime(2014, 2, 2, 12, 12, 12))
-        self.reindex()
-
-        self.query.where = Match(String("cão"))
         self.assertEqual(len(self.query), 1)

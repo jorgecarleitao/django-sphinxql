@@ -13,3 +13,5 @@ class Document(models.Model):
     float = models.FloatField()
 
     bool = models.BooleanField()
+
+    unicode = models.CharField(max_length=254)

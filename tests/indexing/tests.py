@@ -1,9 +1,12 @@
 from unittest import TestCase
+
 from django.utils.timezone import now
 
 from sphinxql.core.base import DateTime, Date
 from sphinxql.exceptions import ImproperlyConfigured
 from sphinxql.query import Query
+from sphinxql.sql import Match
+from sphinxql.types import String
 from sphinxql import indexes
 from sphinxql import fields
 
@@ -34,7 +37,8 @@ class IndexTestCase(SphinxQLTestCase):
             summary="This is a summary", text="What a nice text",
             date=now().date(),
             added_time=now(),
-            number=2, float=2.2, bool=True)
+            number=2, float=2.2, bool=True,
+            unicode='câmara')
         self.index()
 
         self.query = Query()
@@ -78,3 +82,10 @@ class IndexTestCase(SphinxQLTestCase):
 
         result = result[0][7]
         self.assertEqual(result, 1)
+
+    def test_unicode(self):
+        self.query.where = Match(String('@unicode câmara'))
+        self.assertEqual(len(self.query), 1)
+
+        self.query.where = Match(String('@unicode c mara'))
+        self.assertEqual(len(self.query), 0)

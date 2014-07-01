@@ -16,7 +16,7 @@ DEFAULT_LIMIT_COUNT = 100
 class Connection():
     def __init__(self, host=None, port=None):
         host, port = configure_connection(host, port)
-        self.db = MySQLdb.connect(host=host, port=port)
+        self.db = MySQLdb.connect(host=host, port=port, charset='utf8')
 
     def fetch_all(self, sql, params):
         cursor = self.db.cursor()

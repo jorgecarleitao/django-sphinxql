@@ -16,5 +16,7 @@ class DocumentIndex(indexes.Index):
 
     my_bool = fields.Bool(model_attr='bool')
 
+    unicode = fields.Text(model_attr='unicode')
+
     class Meta:
         model = Document
