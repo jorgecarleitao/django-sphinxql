@@ -41,7 +41,9 @@ DJANGO_TO_SPHINX_VENDOR = {'postgresql': 'pgsql',
                            'mysql': 'mysql'}
 
 DEFAULT_SOURCE_PARAMS = {'sql_host': 'localhost',
-                         'sql_pass': ''}
+                         'sql_pass': '',
+                         'sql_query_pre': 'SET CHARACTER_SET_RESULTS=utf8',
+                         }
 
 DEFAULT_INDEX_PARAMS = {'charset_type': 'utf-8'}
 
