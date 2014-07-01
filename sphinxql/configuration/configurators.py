@@ -43,6 +43,8 @@ DJANGO_TO_SPHINX_VENDOR = {'postgresql': 'pgsql',
 DEFAULT_SOURCE_PARAMS = {'sql_host': 'localhost',
                          'sql_pass': ''}
 
+DEFAULT_INDEX_PARAMS = {'charset_type': 'utf-8'}
+
 
 class Configurator(object):
     """
@@ -62,13 +64,15 @@ class Configurator(object):
 
         searchd_params = {'listen': '9306:mysql41',
                           'pid_file': os.path.join(self.sphinx_path, 'searchd.pid')}
+        searchd_params.update(settings.INDEXES.get('searchd_params', {}))
 
         # default params of index
-        self.index_params = settings.INDEXES.get('index_params', {})
+        self.index_params = DEFAULT_INDEX_PARAMS
+        self.index_params.update(settings.INDEXES.get('index_params', {}))
+
         self.source_params = settings.INDEXES.get('source_params', {})
 
         indexer_params = settings.INDEXES.get('indexer_params', {})
-        searchd_params.update(settings.INDEXES.get('searchd_params', {}))
 
         self.indexer_conf = IndexerConfiguration(indexer_params)
         self.searchd_conf = SearchdConfiguration(searchd_params)
