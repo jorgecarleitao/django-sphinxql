@@ -12,12 +12,10 @@ from .models import Document
 from tests import SphinxQLTestCase
 
 
-class SimpleQuerySetTestCase(SphinxQLTestCase):
-    """
-    Tests basic operations of QuerySet
-    """
+class SimpleTestCase(SphinxQLTestCase):
+
     def setUp(self):
-        super(SimpleQuerySetTestCase, self).setUp()
+        super(SimpleTestCase, self).setUp()
 
         self.document = Document.objects.create(
             summary="This is a summary", text="What a nice text",
@@ -34,8 +32,13 @@ class SimpleQuerySetTestCase(SphinxQLTestCase):
 
     def tearDown(self):
         Document.objects.all().delete()
-        super(SimpleQuerySetTestCase, self).tearDown()
+        super(SphinxQLTestCase, self).tearDown()
 
+
+class SimpleQuerySetTestCase(SimpleTestCase):
+    """
+    Tests basic operations of QuerySet
+    """
     def test_lookup_fail(self):
         self.assertRaises(KeyError, self.query.filter, C('numberERROR') >= 2)
 
@@ -138,6 +141,30 @@ class SimpleQuerySetTestCase(SphinxQLTestCase):
         self.assertEqual(results[0].date, self.document.date)
         self.assertEqual(results[0].added_time, self.document.added_time)
         self.assertEqual(results[0].number, self.document.number)
+
+
+class QuerySetLookupTestCase(SimpleTestCase):
+
+    def test_only_1_lookup(self):
+        with self.assertRaises(NotImplementedError):
+            self.query.filter(string__upper__gte=2)
+
+    def test_invalid_lookup(self):
+        with self.assertRaises(KeyError):
+            self.query.filter(number__gteERROR=2)
+
+    def test_filter(self):
+        self.assertEqual(len(self.query), 1)
+
+        q = self.query.filter(number__gte=2)
+        self.assertEqual(len(q), 1)
+
+        q = self.query.filter(number__lt=2)
+        self.assertEqual(len(q), 0)
+
+    def test_single_column(self):
+        q = self.query.filter(number=2)
+        self.assertEqual(len(q), 1)
 
 
 class QuerySetTestCase(SphinxQLTestCase):

@@ -11,23 +11,27 @@ a :class:`Field` is a ``Column`` and thus the easiest way to identify a column i
 to use::
 
     >>> from myapp.indexes import PostIndex
-    >>> PostIndex.text  # a column
+    >>> PostIndex.number  # a column
 
-When using a :class:`QuerySet`, the following statements are equivalent::
+However, in a :class:`SearchQuerySet`, you can use a friendlier notation::
 
+
+    >>> PostIndex.objects.search_filter(number=2)
     >>> from sphinxql.sql import C
-    >>> PostIndex.objects.search_filter(C('text'))
-    >>> PostIndex.objects.search_filter(PostIndex.text)
+    >>> PostIndex.objects.search_filter(C('number') == 2)
+    >>> PostIndex.objects.search_filter(PostIndex.number == 2)
 
-``C('text')`` is an helper that is resolved by the ``QuerySet`` to ``PostIndex.text``
-(or returns an error if ``PostIndex`` doesn't have a :class:`fields.Field` ``text``).
+The first expression uses Django-equivalent lookups. The second uses
+``C('number')``, that is equivalent to Django F-expression and is resolved
+by the ``SearchQuerySet`` to ``PostIndex.number`` (or returns an error if
+``PostIndex`` doesn't have a :class:`~fields.Field` ``number``).
 
 Given a column, you can apply any Python operator to it::
 
-    >>> my_expression = PostIndex.number**2 + PostIndex.series
+    >>> my_expression = C('number')**2 + C('series')
     >>> PostIndex.objects.search_filter(my_expression > 2)
     >>> my_expression += 2
-    >>> my_expression = my_expression > 2
+    >>> my_expression = my_expression > 2  # it is now a condition
 
 .. warning::
     Django-SphinxQL still does not type-check operations:
@@ -35,20 +39,25 @@ Given a column, you can apply any Python operator to it::
 
 .. _Infix: http://code.activestate.com/recipes/384122-infix-operators/
 
-Because Python does not allow to create arbitrary operators, Django-SphinxQL
-uses Infix_::
+To use SQL operators not defined in Python, you have two options::
 
-    >>> from sphinxql.sql import In, And
-    >>> my_expression = PostIndex.number |In| (2, 3)
-    >>> my_expression = my_expression |And| (PostIndex.number > -5)
+    >>> PostIndex.objects.search_filter(number__in=(2, 3))
+    >>> from sphinxql.sql import In
+    >>> PostIndex.objects.search_filter(C('number') |In| (2, 3))
+
+The first expression is Django's way; the second allows you to create complex
+expressions and uses Infix_.
 
 The following operators are defined:
 
-    * ``|And|``
-    * ``|In|``
-    * ``|NotIn|``
-    * ``|Between|``
-    * ``|NotBetween|``
+    * ``|And|`` (separate conditions in ``search_filter``)
+    * ``|In|`` (``__in``, like Django)
+    * ``|NotIn|`` (``__nin``)
+    * ``|Between|`` (``__range``, like Django)
+    * ``|NotBetween|``  (``__nrange``)
+
+API references
+--------------
 
 SQLExpression
 ~~~~~~~~~~~~~
@@ -64,7 +73,7 @@ SQLExpression
     in SQL.
 
 Values
-------
+~~~~~~
 
 .. currentmodule:: sphinxql.types
 

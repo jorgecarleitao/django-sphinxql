@@ -43,7 +43,7 @@ API for interacting with Sphinx from Django.
     with Django database:
 
     * filtering done by :meth:`search` and :meth:`search_filter` are applied
-      before Django's query, restricting the valid ``id``s in the Django's query.
+      before Django's query, restricting the valid ``id`` in the Django's query.
     * :meth:`search_order_by` orders the results and replaces Django ordering.
 
     At most, ``SearchQuerySet`` does 1 database hit in Sphinx, followed by the
@@ -100,7 +100,7 @@ API for interacting with Sphinx from Django.
         * Not: ``'-'`` or ``'!'`` (e.g. ``'hello -world'``)
         * Mandatory first term, optional second term: ``'MAYBE'`` (e.g.
           ``'hello MAYBE world'``)
-        * Phrase match: ``'"<...>"'`` (e.g. '"hello world"'``)
+        * Phrase match: ``'"<...>"'`` (e.g. ``'"hello world"'``)
         * Before match: ``'<<'`` (e.g. ``'hello << world'``)
 
         All arguments passed to this function are SQL-escaped.
@@ -124,11 +124,22 @@ API for interacting with Sphinx from Django.
 
         If any ordering is set, it replaces the Django ordering.
 
-    .. method:: search_filter(*conditions)
+    .. method:: search_filter(*conditions, **lookups)
 
         Adds a filter to the search query. This is useful when you want
-        to restrict the :attr:`max_search_count` to a subset of all possible
-        findings.
+        to restrict the search to a subset of all possible findings.
+
+        ``lookups`` use the same syntax as Django lookups to construct conditions,
+        see :doc:`expression`.
 
         ``conditions`` should be :doc:`Django-SphinxQL expressions <expression>`
-        and are joined with an ``AND``.
+        that return a boolean value (e.g. use ``>=``) and are used to produce
+        more complex filters.
+
+        You can use both ``lookups`` and ``conditions`` at the same time::
+
+        >>> q = q.search_filter(number__in=(2,3), C('number1')**2 > 10)
+
+        The method joins the ``lookups`` and the ``conditions`` using
+        ``AND``.
+

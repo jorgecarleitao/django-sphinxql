@@ -4,9 +4,35 @@ from django.db.models import query
 
 from .core.query import Query
 from .core import base
+from .core import lookups
 from sphinxql.exceptions import NotSupportedError
 from .types import Bool, String
 from .sql import Match, And, Neg, C, Column, All, Count
+
+
+def parse_lookup(lhs, rhs):
+    assert lhs
+    parts = lhs.split('__')
+
+    if len(parts) > 2:
+        raise NotImplementedError('Currently Django-SphinxQL only accepts'
+                                  'lookups having up to 1 \'__\'.')
+    rhs = base.convert(rhs)
+
+    if len(parts) == 1:
+        parts.append('eq')
+
+    column = C(parts[0])
+    lookup = parts[1]
+
+    try:
+        operation = lookups.LOOKUPS[lookup]
+    except KeyError:
+        raise KeyError('Lookup \'{0}\' not valid. '
+                       'Check documentation on available lookups.'
+                       .format(parts[1]))
+
+    return operation(column, rhs)
 
 
 class QuerySet(object):
@@ -104,14 +130,20 @@ class QuerySet(object):
         else:
             return 0
 
-    def filter(self, *conditions):
+    def filter(self, *conditions, **lookups):
         clone = self.clone()
+
+        conditions = list(conditions)
+        for lookup in lookups:
+            condition = parse_lookup(lookup, lookups[lookup])
+            conditions.append(condition)
 
         for condition in conditions:
             assert isinstance(condition, base.SQLExpression)
             condition = condition.resolve_columns(self._index)
             assert condition.type() == Bool
             clone.query.where = self._add_condition(clone.query.where, condition)
+
         return clone
 
     def search(self, extended_query):
@@ -183,9 +215,9 @@ class SearchQuerySet(query.QuerySet):
         self._result_cache = None
         self.search_mode = False
 
-    def search_filter(self, *conditions):
+    def search_filter(self, *conditions, **lookups):
         clone = self._clone()
-        clone._sphinx_queryset = self._sphinx_queryset.filter(*conditions)
+        clone._sphinx_queryset = self._sphinx_queryset.filter(*conditions, **lookups)
         return clone
 
     def search(self, *extended_queries):
