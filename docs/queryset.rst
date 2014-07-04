@@ -109,16 +109,15 @@ API for interacting with Sphinx from Django.
 
         Adds ``ORDER BY`` clauses to Sphinx query. For example::
 
-            >>> q = q.search(a).search_order_by(-C('number'))
+            >>> q = q.search(a).search_order_by('-number')
 
         will order first by the search relevance (:meth:`search` added it)
-        and then by ``number`` in decreasing order. Use ``search_order_by()`` to
-        clear the ordering (default order is by ``id``, like Django).
+        and then by ``number``, in decreasing order. Use ``search_order_by()``
+        to clear the ordering (default order is by ``id``, like Django).
 
-        Currently, the expressions can only be either ``-C(...)`` or ``C(...)``,
-        i.e. you cannot order by ``C(number) + C(other_number)``.
+        Currently, you cannot use lookups on it.
 
-        There are two built-in columns, ``C('@id')`` and ``C('@relevance')``,
+        There are two built-in columns, ``'@id'`` and ``'@relevance'``,
         that are used to order by Django ``id`` and by relevance of the results,
         respectively.
 

@@ -10,9 +10,12 @@ from .types import Bool, String
 from .sql import Match, And, Neg, C, Column, All, Count
 
 
+LOOKUP_SEPARATOR = '__'
+
+
 def parse_lookup(lhs, rhs):
     assert lhs
-    parts = lhs.split('__')
+    parts = lhs.split(LOOKUP_SEPARATOR)
 
     if len(parts) > 2:
         raise NotImplementedError('Currently Django-SphinxQL only accepts'
@@ -164,6 +167,17 @@ class QuerySet(object):
             return clone
 
         for arg in args:
+            # parse string
+            if isinstance(arg, str):
+                if LOOKUP_SEPARATOR in arg:
+                    raise NotImplementedError('Django-SphinxQL does not support '
+                                              'lookups in order by.')
+                if arg[0] == '-':
+                    arg = Neg(C(arg[1:]))
+                else:
+                    arg = C(arg)
+
+            # parse negation of column
             assert isinstance(arg, (Neg, C, Column))
             ascending = True
             if isinstance(arg, Neg):

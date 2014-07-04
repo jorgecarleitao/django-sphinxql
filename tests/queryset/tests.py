@@ -166,6 +166,17 @@ class QuerySetLookupTestCase(SimpleTestCase):
         q = self.query.filter(number=2)
         self.assertEqual(len(q), 1)
 
+    def test_order_by_lookup(self):
+        with self.assertRaises(NotImplementedError):
+            self.query.order_by('number__max')
+
+    def test_order_by(self):
+        q = self.query.order_by('number')
+        self.assertEqual(len(q), 1)
+
+        q = self.query.order_by('-number')
+        self.assertEqual(len(q), 1)
+
 
 class QuerySetTestCase(SphinxQLTestCase):
 
