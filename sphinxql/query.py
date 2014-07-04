@@ -151,10 +151,9 @@ class QuerySet(object):
 
     def search(self, extended_query):
         assert isinstance(extended_query, str)
-        # concatenate the query
-        self._match += ' %s' % extended_query
-
-        return self.clone()
+        clone = self.clone()
+        clone._match += ' %s' % extended_query
+        return clone
 
     def order_by(self, *args):
         """
