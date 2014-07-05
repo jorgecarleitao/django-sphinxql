@@ -2,18 +2,18 @@ Django-SphinxQL documentation
 =============================
 
 Django-SphinxQL is an API to use `sphinx search <http://sphinxsearch.com>`_
-with `Django <http://djangoproject.com>`_. Thanks for checking it out.
+in `Django <http://djangoproject.com>`_. Thanks for checking it out.
 
 Django is a Web framework for building websites with relational databases;
 Sphinx is a search engine designed to be used in relational databases.
-Django-SphinxQL defines an ORM for using **Sphinx within Django**.
+Django-SphinxQL defines an ORM for using **Sphinx in Django**.
 
 As corollary, it allows you to implement full text search with Sphinx in your
 Django website. Specifically, this API allows you to:
 
 1. Configure Sphinx with Python.
 2. Index Django models in Sphinx.
-3. Execute Sphinx queries (SphinxQL) and retrieve the results like Django.
+3. Execute Sphinx queries (SphinxQL) and map the results to Django models.
 
 .. warning::
 
@@ -88,11 +88,10 @@ Then run::
 
     python manage.py index_sphinx
 
-This runs the query ``Document.objects.all()`` against your database,
-picking the data and indexes it. At this moment you may notice that some files
-will be created in ``settings.INDEXES['PATH']``: Sphinx database is populated.
+At this moment you may notice that some files will be created in
+``settings.INDEXES['PATH']``: Sphinx database is populated.
 
-Then, start Sphinx (only have to be started once)::
+Then, start Sphinx (only has to be started once)::
 
     python manage.py start_sphinx
 
@@ -101,17 +100,13 @@ Then, start Sphinx (only have to be started once)::
 Search your indexes
 -------------------
 
-Sphinx uses two syntaxes: a dialect of SQL for ordering, filtering and
-aggregation - SphinxQL -, and an Sphinx-specific *extended query syntax* for text
-search.
-
 Django-SphinxQL defines a subclass of Django ``QuerySet``,
 :class:`~sphinxql.query.SearchQuerySet`, that interfaces with all Sphinx-related
 operations. If you don't use extra functionality, it works as a normal ``QuerySet``.
 
 Sphinx has a dedicated syntax for text search that Django-SphinxQL accepts::
 
-    >>> q = DocumentIndex.objects.search('@my_text toys for babies')
+    >>> q = SearchQuerySet(DocumentIndex).search('@my_text toys for babies')
 
 This particular query returns ``Documents`` restricted to the ones where
 "toys for babies" match in field ``my_text``. Once you perform it, it does the
@@ -120,7 +115,7 @@ following:
 1. hit Sphinx database and convert results to ``DocumentIndex`` instances;
 2. hit Django database to retrieve the respective ``Document`` instances;
 3. annotate ``Document`` instances with the respective ``DocumentIndex``
-   instances;
+   instances (``search_result``)
 4. returns ``Document`` instances.
 
 Step 2. is done using ``.filter(pk__in=[...])``. See :doc:`queryset` for more info.
