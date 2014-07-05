@@ -83,9 +83,6 @@ class Configurator(object):
         self.indexes_confs = []
         self.sources_confs = []
 
-        # todo: generalize to handle routing
-        self.db = 'default'
-
     def register(self, index):
         """
         Registers an index to the configurator
@@ -116,20 +113,25 @@ class Configurator(object):
         source_attrs = {}
         source_attrs.update(self.source_params)
 
+        if hasattr(index.Meta, 'query'):
+            query = index.Meta.query
+        else:
+            query = index.Meta.model.objects.all()
+
         ### select type from backend
-        if connections[self.db].vendor not in DJANGO_TO_SPHINX_VENDOR:
+        if connections[query.db].vendor not in DJANGO_TO_SPHINX_VENDOR:
             raise ImproperlyConfigured('Django-SphinxQL currently only supports mysql '
                                        'and postgresql backends')
 
         source_attrs = add_source_conf_param(source_attrs,
                                              'type',
-                                             DJANGO_TO_SPHINX_VENDOR[connections[self.db].vendor])
-        self.vendor = DJANGO_TO_SPHINX_VENDOR[connections[self.db].vendor]
+                                             DJANGO_TO_SPHINX_VENDOR[connections[query.db].vendor])
+        self.vendor = source_attrs['type']
 
         ### build connection parameters from Django connection parameters
         source_attrs.update(DEFAULT_SOURCE_PARAMS)
 
-        connection_params = connections[self.db].get_connection_params()
+        connection_params = connections[query.db].get_connection_params()
         for key in connection_params:
             if key in SPHINX_TO_DJANGO_MAP:
                 value = SPHINX_TO_DJANGO_MAP[key]
@@ -149,24 +151,20 @@ class Configurator(object):
         source_attrs = add_source_conf_param(
             source_attrs,
             'sql_query',
-            self._build_query(index))
+            self._build_query(index, query, self.vendor))
 
         return SourceConfiguration(index.build_name(), source_attrs)
 
-    def _build_query(self, index):
+    @staticmethod
+    def _build_query(index, query, vendor):
         """
         Returns a SQL query built according to the fields selected
         """
         def qn(value):
-            if self.vendor == 'mysql':
+            if vendor == 'mysql':
                 return '`%s`' % value
             else:
                 return '"%s"' % value
-
-        if hasattr(index.Meta, 'query'):
-            query = index.Meta.query
-        else:
-            query = index.Meta.model.objects.all()
 
         # Prepare the query Sphinx will use: select only the fields we use.
         # Because fields in Meta are ordered as Django fields, this will
@@ -176,7 +174,7 @@ class Configurator(object):
             column_name = qn(index.get_model_field(field.model_attr))
             alias = qn(field.name)
             sql = "%s"
-            if self.vendor == 'mysql':
+            if vendor == 'mysql':
                 if field.type() in (DateTime, Date):
                     # for dates, we need the timestamp.
                     # To ensure we get the correct timestamp (i.e. same as Django uses),
@@ -185,7 +183,7 @@ class Configurator(object):
                           "%s, " \
                           "'+00:00', " \
                           "@@session.time_zone))"
-            if self.vendor == 'pgsql':
+            if vendor == 'pgsql':
                 if field.type() is DateTime:
                     sql = "EXTRACT(EPOCH FROM %s AT TIME ZONE '%s')" % ('%s', settings.TIME_ZONE)
                 elif field.type() is Date:
