@@ -246,6 +246,15 @@ class SearchQuerySet(query.QuerySet):
         clone._sphinx_queryset = clone._sphinx_queryset.order_by(*columns)
         return clone
 
+    def _has_explicit_ordering(self):
+        """
+        A weaker version of ``ordered`` that ignores default ordering and
+        Meta.ordering.
+        """
+        if self.query.extra_order_by or self.query.order_by:
+            return True
+        return False
+
     def _annotated_models(self):
         """
         Returns the models annotated with `search_result`. Uses `_result_cache`.
@@ -264,7 +273,7 @@ class SearchQuerySet(query.QuerySet):
         # exclude objects excluded by Django query
         # annotate models with search_result.
         self._result_cache = []
-        if self._sphinx_queryset.query.order_by:
+        if self._sphinx_queryset.query.order_by and not self._has_explicit_ordering():
             for id in indexes:
                 if id in models:
                     # annotate `search_result`

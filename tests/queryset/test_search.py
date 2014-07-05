@@ -50,11 +50,17 @@ class SearchQuerySetTestCase(SphinxQLTestCase):
         self.assertEqual(len(self.query.search('@text "text. What"')), 99)
 
     def test_override_order_by(self):
-        query = self.query.order_by('-number')
+        query = self.query.order_by('-id')
         self.assertEqual(query[0].number, 200)
 
+        # don't override Django order
         query.search_mode = True
-        self.assertEqual(query.search_order_by(C('@id'))[0].number, 2)
+        query = query.search_order_by(C('@id'))
+        self.assertEqual(query[0].number, 200)
+
+        # clear Django ordering to override it
+        query = query.order_by()
+        self.assertEqual(query[0].number, 2)
 
     def test_iter(self):
         q = self.query.search('@text What').search_order_by()
@@ -106,9 +112,9 @@ class SearchQuerySetTestCase(SphinxQLTestCase):
         self.assertEqual(q[0].number, 200)
         self.assertEqual(q1[0].number, 2)
 
-        # Django order is ignored
+        # Django order is not ignored
         q = q.order_by('number')
-        self.assertEqual(q[0].number, 200)
+        self.assertEqual(q[0].number, 2)
 
     def test_django_order_not_overridden(self):
         q = self.query.search('@text What').search_order_by()
