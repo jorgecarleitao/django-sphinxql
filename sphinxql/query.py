@@ -24,7 +24,10 @@ def parse_lookup(lhs, rhs):
     if len(parts) == 1:
         parts.append('eq')
 
-    column = C(parts[0])
+    if parts[0] == 'id':
+        column = C('@id')
+    else:
+        column = C(parts[0])
     lookup = parts[1]
 
     try:

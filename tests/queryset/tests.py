@@ -170,6 +170,9 @@ class QuerySetLookupTestCase(SimpleTestCase):
         q = self.query.filter(number__in=(2, 3))
         self.assertEqual(len(q), 1)
 
+    def test_id_in_lhs(self):
+        q = self.query.filter(id__in=(1, 2))
+
     def test_order_by_lookup(self):
         with self.assertRaises(NotImplementedError):
             self.query.order_by('number__max')

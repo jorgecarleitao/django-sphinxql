@@ -160,3 +160,5 @@ API for interacting with Sphinx from Django.
 
         The method joins all and each ``lookup`` and ``condition`` with ``AND``.
 
+        Like in Django, ``"id"`` is a reserved keyword to indicate the object id.
+
