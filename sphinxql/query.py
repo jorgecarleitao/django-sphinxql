@@ -20,7 +20,6 @@ def parse_lookup(lhs, rhs):
     if len(parts) > 2:
         raise NotImplementedError('Currently Django-SphinxQL only accepts'
                                   'lookups having up to 1 \'__\'.')
-    rhs = base.convert(rhs)
 
     if len(parts) == 1:
         parts.append('eq')
@@ -34,6 +33,9 @@ def parse_lookup(lhs, rhs):
         raise KeyError('Lookup \'{0}\' not valid. '
                        'Check documentation on available lookups.'
                        .format(parts[1]))
+
+    if lookup not in ('in', 'nin', 'range', 'nrange'):
+        rhs = base.convert(rhs)
 
     return operation(column, rhs)
 

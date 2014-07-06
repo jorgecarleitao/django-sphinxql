@@ -166,6 +166,10 @@ class QuerySetLookupTestCase(SimpleTestCase):
         q = self.query.filter(number=2)
         self.assertEqual(len(q), 1)
 
+    def test_tuple_on_rhs(self):
+        q = self.query.filter(number__in=(2, 3))
+        self.assertEqual(len(q), 1)
+
     def test_order_by_lookup(self):
         with self.assertRaises(NotImplementedError):
             self.query.order_by('number__max')
