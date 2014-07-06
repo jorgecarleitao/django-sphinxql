@@ -9,8 +9,8 @@ class Manager(object):
     def all(self):
         return SearchQuerySet(self._index).all()
 
-    def filter(self, *args):
-        return SearchQuerySet(self._index).filter(*args)
+    def filter(self, *args, **kwargs):
+        return SearchQuerySet(self._index).filter(*args, **kwargs)
 
     def search(self, expression):
         return SearchQuerySet(self._index).search(expression)
