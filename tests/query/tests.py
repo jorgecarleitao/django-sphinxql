@@ -103,5 +103,5 @@ class QueryTestCase(SphinxQLTestCase):
         self.assertEqual(len(results), 0)
 
     def test_match(self):
-        self.query.where = Match(String("foo"))
+        self.query.where = Match("foo")
         self.assertEqual(len(self.query), 1)

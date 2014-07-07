@@ -76,7 +76,7 @@ class QuerySet(object):
         """
         clone = self.query.clone()
         if self._match:
-            clone.where = self._add_condition(clone.where, Match(String(self._match)))
+            clone.where = self._add_condition(clone.where, Match(self._match))
         return clone
 
     def _parsed_results(self):

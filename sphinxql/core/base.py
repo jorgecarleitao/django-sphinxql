@@ -230,6 +230,11 @@ class Neg(UnitaryFunction):
 class Match(UnitaryFunction):
     _function = 'MATCH'
 
+    def __init__(self, argument):
+        #Match always receives a string
+        assert isinstance(argument, str)
+        super(UnitaryFunction, self).__init__([String(argument)])
+
 
 class Count(UnitaryFunction):
     _function = 'COUNT'

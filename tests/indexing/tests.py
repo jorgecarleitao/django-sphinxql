@@ -84,8 +84,8 @@ class IndexTestCase(SphinxQLTestCase):
         self.assertEqual(result, 1)
 
     def test_unicode(self):
-        self.query.where = Match(String('@unicode câmara'))
+        self.query.where = Match('@unicode câmara')
         self.assertEqual(len(self.query), 1)
 
-        self.query.where = Match(String('@unicode c mara'))
+        self.query.where = Match('@unicode c mara')
         self.assertEqual(len(self.query), 0)
