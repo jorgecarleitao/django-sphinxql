@@ -3,18 +3,21 @@ SphinxQL Queries
 
 .. currentmodule:: sphinxql
 
-This section of the documentation explains how to construct expressions.
+This section of the documentation explains how to construct these expressions.
 To use queries with Django, see :doc:`queryset`.
 
+Sphinx uses a dialect of SQL, SphinxQL, to perform operations on its database.
+Django-SphinxQL has a notation equivalent to Django to construct such expressions.
+
 The basic unit of SphinxQL is the :class:`~columns.Column`. In Django-SphinxQL,
-a :class:`Field` is a ``Column`` and thus the easiest way to identify a column is
-to use::
+a :class:`~sphinxql.field.Field` is a ``Column`` and thus the most explicit way
+to identify a column is to use::
 
     >>> from myapp.indexes import PostIndex
     >>> PostIndex.number  # a column
 
-However, in a :class:`SearchQuerySet`, you can use a friendlier notation::
-
+However, in a :class:`SearchQuerySet`, you can use more implicit but simpler
+notations::
 
     >>> PostIndex.objects.search_filter(number=2)
     >>> from sphinxql.sql import C
@@ -26,7 +29,7 @@ The first expression uses Django-equivalent lookups. The second uses
 by the ``SearchQuerySet`` to ``PostIndex.number`` (or returns an error if
 ``PostIndex`` doesn't have a :class:`~fields.Field` ``number``).
 
-Given a column, you can apply any Python operator to it::
+Given a column, you can apply any Python operator (except bitwise) to it::
 
     >>> my_expression = C('number')**2 + C('series')
     >>> PostIndex.objects.search_filter(my_expression > 2)
@@ -34,8 +37,9 @@ Given a column, you can apply any Python operator to it::
     >>> my_expression = my_expression > 2  # it is now a condition
 
 .. warning::
+
     Django-SphinxQL still does not type-check operations:
-    it can query ``'hi hi' + 2 < 4`` if you pass a wrong type expression.
+    it can query ``'hi hi' + 2 < 4`` if you write a wrongly-typed expression.
 
 .. _Infix: http://code.activestate.com/recipes/384122-infix-operators/
 
@@ -45,8 +49,8 @@ To use SQL operators not defined in Python, you have two options::
     >>> from sphinxql.sql import In
     >>> PostIndex.objects.search_filter(C('number') |In| (2, 3))
 
-The first expression is Django's way; the second allows you to create complex
-expressions and uses Infix_.
+Again, the first is the Django way and more implicit; the second is more explicit
+and lengthier, but allows you to create complex expressions, and uses Infix_ idiom.
 
 The following operators are defined:
 
@@ -57,23 +61,27 @@ The following operators are defined:
     * ``|NotBetween|``  (``__nrange``)
 
 API references
---------------
+~~~~~~~~~~~~~~
+
+.. warning::
+
+    This part of the documentation is still internal and subject to change/disappear.
 
 SQLExpression
-~~~~~~~~~~~~~
+-------------
 
 .. class:: SQLExpression
 
-    ``SQLExpression`` is an abstract way to build arbitrary SQL expressions.
+    ``SQLExpression`` is the abstraction to build arbitrary SQL expressions.
     Almost everything in Django-SphinxQL is based on it: :class:`fields.Field`,
-    ``types.Integer``, ``And``, :class:`types.Value`, etc.
+    ``And``, :class:`types.Value`, etc.
 
     It has most Python operators overridden such that an expression ``C('foo') + 2``
     is converted into ``Plus(C('foo'), Value(2))``, which can then be represented
     in SQL.
 
 Values
-~~~~~~
+------
 
 .. currentmodule:: sphinxql.types
 
@@ -89,15 +97,15 @@ Values
     * ``Date``
     * ``DateTime``
 
-Any ``SQLExpression`` that encounters a Python type converts it to any of these
-types. For instance::
+    Any ``SQLExpression`` that encounters a non-SQLExpression type tries to convert
+    it to any of these types or raises a ``TypeError``. For instance::
 
-    C('votes') < 10
+        C('votes') < 10
 
-is translated to ``SmallerThan(C('votes'), Integer(10))``.
+        is translated to ``SmallerThan(C('votes'), Integer(10))``.
 
-Notice that time intervals are not defined in SphinxQL, so you can only compare
-dates and times.
+
+    ``String`` is always SQL-escaped.
 
 Operations
 ----------
@@ -129,17 +137,18 @@ Other functions
 * ``Not``
 
 Sphinx extended query syntax
-============================
+----------------------------
 
 .. _dedicated syntax: sphinxsearch.com/docs/current.html#extended-syntax
 
-To filter results based on text, Sphinx defines a SQL reserved keyword ``MATCH()``.
-Inside this function, Sphinx allows a `dedicated syntax`_ to filter text against
-the Sphinx index. In Django-Sphinxql, such filter is defined as a string inside a
-``Match`` is a string::
+.. class:: sql.Match
 
-    >>> expression = Match('hello & world') |AND| (C('votes') > 0)
+    To filter results based on text, Sphinx defines a SQL keyword ``MATCH()``.
+    Inside this function, you can use its `dedicated syntax`_ to filter text against
+    the Sphinx index. In Django-SphinxQL such filter is defined as a string inside a
+    ``Match`` is a string::
 
-Sphinx only allows one ``MATCH`` per query; it is the developer responsibility to
-guarantee that this happens. :meth:`query.QuerySet.search` automatically guarantees
-this.
+        >>> expression = Match('hello & world')
+
+Since Sphinx only allows one ``MATCH`` per query, the public interface for using it
+is :meth:`query.SearchQuerySet.search`, that automatically guarantees this.

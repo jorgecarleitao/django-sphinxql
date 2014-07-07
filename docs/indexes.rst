@@ -30,7 +30,7 @@ Django-SphinxQL defines an ORM for performing these two operations::
         class Meta:
             model = models.Post  # the model we are indexing
 
-The ``fields`` and the ``Meta.model`` identify "what", the specific field, e.g.
+The ``fields`` and the ``Meta.model`` identify "what"; the specific field, e.g.
 ``Text``, identifies "how". Currently, Django-SphinxQL does not type check
 if the fields in the ``Model`` can be represented by the specific Django-SphinxQL
 fields.
@@ -67,6 +67,9 @@ Index
 
     We recommend defining indexes in a ``indexes.py`` module, inside your app.
 
+    When an ``Index`` is defined, it is automatically registered in the
+    :class:`~sphinxql.configurations.configurator.IndexConfigurator`.
+
 Field
 ~~~~~
 
@@ -75,12 +78,12 @@ uses fields:
 
 .. class:: fields.Field
 
-    A field to be added to the Sphinx database. A field must always be mapped to
-    a Django model field, done on its initialization::
+    A field to be added to the Sphinx index. A field must always be mapped to
+    a Django model field, set on its initialization::
 
         my_indexed_text = Field('text')  # Index.Meta.model contains `text = ...`
 
-    Currently it is not possible to map to a Django lookup expression, but
+    Currently it is not possible to map a field to a Django lookup expression, but
     we expect it to be possible in Django 1.8.
 
     There are two types of fields in Sphinx: attributes and indexed attributes:
@@ -89,7 +92,7 @@ uses fields:
       be used in :meth:`Sphinxql.query.SearchQuerySet.search_filter`.
 
     * Indexed attributes are attributes that are indexed for text search, and thus
-      can also be used in textual searches with
+      can also be used for textual searches in
       :meth:`Sphinxql.query.SearchQuerySet.search`.
 
     The following fields are implemented in Django-SphinxQL:
