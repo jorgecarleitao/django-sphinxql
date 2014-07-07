@@ -17,7 +17,7 @@ API for interacting with Sphinx from Django.
 
         >>> q = SearchQuerySet(index, query=None, using=None)
 
-    that initializes Django's queryset from the :attr:`index.Meta.model`.
+    that initializes Django's queryset from the :attr:`Index.Meta.model <indexes.Index.Meta.model>`.
 
     The API of ``SearchQuerySet`` is the same as ``QuerySet``, with the following
     additional methods:
@@ -27,7 +27,7 @@ API for interacting with Sphinx from Django.
     * :meth:`search_filter`: for filtering the results of the search
 
     If you don't use any of these methods, ``SearchQuerySet`` is equivalent to
-    a Django ``QuerySet`` and can be replaced on your code without any change.
+    a Django ``QuerySet`` and can be directly replaced without any change.
 
     When you apply :meth:`search`, ``SearchQuerySet`` assumes you want to use
     Sphinx on it:
@@ -36,7 +36,7 @@ API for interacting with Sphinx from Django.
 
         Defaults to ``False``, and defines whether Sphinx should be used by the
         :class:`~query.SearchQuerySet` prior to Django database hit. Automatically
-        set to `True` when :meth:`search` is used.
+        set to ``True`` when :meth:`search` is used.
 
     When :attr:`search_mode` is ``True``, the queryset performs a search in Sphinx
     database with the query built from the ``search*`` methods before interacting
@@ -58,8 +58,8 @@ API for interacting with Sphinx from Django.
         count 1000 (can be less if Django filters some).
 
     If Sphinx is used, model objects are annotated with an attribute
-    ``search_result`` that contains the ``Index`` populated the values retrieved
-    from Sphinx database.
+    ``search_result`` with the :class:`~indexes.Index` populated the values
+    retrieved from Sphinx database.
 
     .. _extended query syntax: http://sphinxsearch.com/docs/current.html#extended-syntax
 
@@ -78,11 +78,10 @@ API for interacting with Sphinx from Django.
         For instance::
 
             >>> q = q.search('@text Hello world')
-            >>> assert len(q) == q.max_search_count
             >>> q = q.filter(number__gt=2)
 
         1. Searches for models with ``Hello world`` on the field ``text``
-        2. orders them by most relevance first and retrieves the first
+        2. orders them by most relevant first and retrieves the first
            :attr:`max_search_count` entries
         3. filters the remaining entries with the Django query.
 
@@ -115,50 +114,47 @@ API for interacting with Sphinx from Django.
             >>> q = q.search(a).search_order_by('-number')
 
         will order first by the search relevance (:meth:`search` added it)
-        and then by ``number``, in decreasing order. Use ``search_order_by()``
+        and then by ``number`` in decreasing order. Use ``search_order_by()``
         to clear the ordering (default order is by ``id``, like Django).
-
-        Currently, you cannot use lookups on it.
 
         There are two built-in columns, ``'@id'`` and ``'@relevance'``,
         that are used to order by Django ``id`` and by relevance of the results,
         respectively.
 
-        Notice that search ordering is applied *before* Django's query is done.
+        Notice that search ordering is applied *before* Django's query is performed.
         Yet, the final result (after Django query) is ordered according to Django
-        ordering unless you didn't set any ordering to Django's query, in which
-        case the search ordering is used. This ignores *default ordering* and
-        *ordering in Meta*. For example::
+        ordering unless you didn't set any ordering to Django's query. For example::
 
-        >>> q = q.order_by('id').search(a).search_order_by('-number')
+        >>> q = q.order_by('id').search(a)
 
-        orders the final results by ``id``, but::
+        orders the final results by ``id`` and::
 
         >>> q = q.order_by('id').search(a).order_by()
 
         orders the results by search relevance (because ``order_by()``
-        clears Django's ordering).
+        cleared Django's ordering).
 
-        If no search order is set, the search is ordered by ``id``
-        and the final results are ordered by standard Django ordering.
+        In other words, the results are ordered by search ordering unless
+        there is an explicit call of ``order_by``.
 
     .. method:: search_filter(*conditions, **lookups)
 
-        Adds a filter to the search query. This is useful when you want
-        to restrict the search to a subset of all possible findings.
+        Adds a filter to the search query, allowing you to restrict the search
+        results of the search.
 
-        ``lookups`` use the same syntax as Django lookups to construct conditions,
-        see :doc:`expression`.
+        ``lookups`` are like Django lookups for ``filter``. Just remember that
+        the field name must be defined on the :class:`indexes.Index`.
 
         ``conditions`` should be :doc:`Django-SphinxQL expressions <expression>`
-        that return a boolean value (e.g. use ``>=``) and are used to produce
-        more complex filters.
+        that return a boolean value (e.g. ``>=``) and are used to produce more
+        complex filters.
 
-        You can use both ``lookups`` and ``conditions`` at the same time::
+        You can use ``lookups`` and ``conditions`` at the same time::
 
         >>> q = q.search_filter(number__in=(2,3), C('number1')**2 > 10)
 
         The method joins all and each ``lookup`` and ``condition`` with ``AND``.
 
-        Like in Django, ``"id"`` is a reserved keyword to indicate the object id.
+        Like in Django, ``"id__"`` is reserved to indicate the object id (Sphinx
+        shares the same ids as Django).
 
