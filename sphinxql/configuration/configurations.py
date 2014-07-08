@@ -6,8 +6,7 @@ class Configuration(object):
     """
     A generic Sphinx configuration.
 
-    Has a type, a type_name and parameters in a dictionary
-    form.
+    Has a type, a type_name and parameters in a dictionary form.
     """
     type_name = None
     valid_parameters = tuple()
@@ -46,8 +45,7 @@ class Configuration(object):
 
     def format_output(self):
         """
-        Formats this configuration into a string
-        ready for sphinx.conf.
+        Formats this configuration into a string ready for sphinx.conf.
         """
         if not self.params:
             return ''
@@ -61,8 +59,7 @@ class Configuration(object):
     @classmethod
     def validate_parameters(cls, params):
         """
-        Checks that all parameters `params` are valid
-        for this configuration.
+        Checks that all parameters `params` are valid for this configuration.
         """
         missing_parameters = set(cls.mandatory_parameters)
 
