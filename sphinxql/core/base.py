@@ -166,7 +166,8 @@ class Function(SQLExpression):
     _arguments_num = 1
 
     def __init__(self, values):
-        if self._arguments_num is not None and len(values) != self._arguments_num:
+        if self._arguments_num is not None and\
+           len(values) != self._arguments_num:
             raise IndexError('len of argument of "%s" must be %d' %
                              (self.__class__.__name__, self._arguments_num))
         super(Function, self).__init__(values)
@@ -193,8 +194,9 @@ class Function(SQLExpression):
         return sql
 
     def as_sql(self):
-        return '{function}({parameters_sql})'.format(function=self._function,
-                                                     parameters_sql=self._format_parameters(self._value))
+        return '{function}({parameters_sql})'\
+            .format(function=self._function,
+                    parameters_sql=self._format_parameters(self._value))
 
     def get_params(self):
         params = []
@@ -300,8 +302,8 @@ class NotBetween(Between):
 
 class BinaryFunction(Function):
     """
-    Any function of two arguments that is represented
-    by `<lhs> <operation> <rhs>` (e.g. sum).
+    Any function of two arguments that is represented by `<lhs> <operation> <rhs>`
+    (e.g. 2 + 3).
     """
     _arguments_num = 2
 
@@ -386,15 +388,15 @@ class GreaterEqualThan(BooleanOperation):
 
 class Value(SQLExpression):
     """
-    Represents a constant value passed as
-    sql parameter (to be escaped)
+    Represents a constant value.
     """
     _input_python_types = ()
     _python_type = None
 
     def __init__(self, value):
         if not isinstance(value, self._input_python_types):
-            raise TypeError("%s only accepts types %s" % (self.__class__, self._input_python_types))
+            raise TypeError("%s only accepts types %s" %
+                            (self.__class__, self._input_python_types))
         if not isinstance(value, self._python_type):
             value = self._python_type(value)
         super(Value, self).__init__(value)
