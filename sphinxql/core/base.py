@@ -433,7 +433,10 @@ class Bool(Value):
     _python_type = bool
 
     def as_sql(self):
-        return '%d' % self._value
+        if self._value:
+            return 'TRUE'
+        else:
+            return 'FALSE'
 
 
 class String(Value):

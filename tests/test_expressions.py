@@ -161,7 +161,7 @@ class OtherTestCase(TestCase):
 
         self.assertEqual(Bool(True).type(), Bool)
         self.assertEqual(r.type(), Integer)
-        self.assertEqual(r.as_sql(), '`test` + 1')
+        self.assertEqual(r.as_sql(), '`test` + TRUE')
 
     def test_dates(self):
 
