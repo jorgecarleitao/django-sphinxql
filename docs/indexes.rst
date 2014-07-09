@@ -65,8 +65,8 @@ Index
         .. attribute:: query
 
             Optional, the query Sphinx uses to index its data, e.g.
-            ``query = models.Post.filter(date__year__gt=2000)``. If not set,
-            Django-SphinxQL uses ``.objects.all()``.
+            ``query = models.Post.objects.filter(date__year__gt=2000)``. If not
+            set, Django-SphinxQL uses ``.objects.all()``.
 
 Field
 ~~~~~
