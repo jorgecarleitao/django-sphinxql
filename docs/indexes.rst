@@ -6,17 +6,14 @@ Indexes API
 This document explains how Django-SphinxQL maps a Django model into a Sphinx
 index.
 
-Sphinx
-------
-
-Sphinx uses a SQL query to retrieve data from a relational database to index
-it. This means that Django-SphinxQL must know:
+Sphinx uses a SQL query to retrieve data from a relational database to index it.
+This means that Django-SphinxQL must know:
 
 1. what you want to index (e.g. what data)
-2. how you want to index (e.g. type)
+2. how you want to index it (e.g. type)
 
-to pass a SQL query, built in Django, to Sphinx. In the same spirit of Django,
-Django-SphinxQL defines an ORM for performing these two operations::
+In the same spirit of Django, Django-SphinxQL defines an ORM for you to answer
+those questions. It works like this::
 
     # indexes.py
     from sphinxql import fields, indexes
@@ -30,10 +27,12 @@ Django-SphinxQL defines an ORM for performing these two operations::
         class Meta:
             model = models.Post  # the model we are indexing
 
-The ``fields`` and the ``Meta.model`` identify "what"; the specific field, e.g.
-``Text``, identifies "how". Currently, Django-SphinxQL does not type check
-if the fields in the ``Model`` can be represented by the specific Django-SphinxQL
-fields.
+The ``fields`` and the ``Meta.model`` identify "what"; the specific field type,
+e.g. ``Text``, identifies the "how". In the following sections the complete API
+is presented.
+
+API references
+--------------
 
 Index
 ~~~~~
@@ -44,58 +43,67 @@ Index
     a similar fashion to a Django model: you set up the :class:`fields
     <fields.Field>`, and it constructs an index out of these fields.
 
-    An index has always a class ``Meta``:
+    Formally, when an index is declared, it is automatically registered in the
+    :class:`~sphinxql.configuration.configurators.IndexConfigurator` to
+    Django-SphinxQL configure Sphinx.
+
+    An index is always composed by two components: a set of :class:`fields
+    <fields.Field>` that you declare as class attributes and a class ``Meta``:
 
     .. class:: Meta
 
-        This class contains Django-SphinxQL specific data to not pollute the
-        :class:`~indexes.Index` itself. The Meta must always define the
-        attribute ``model``:
+        Class used to declare Django-SphinxQL specifics to not pollute the
+        :class:`~indexes.Index` itself.
+
+        An index must always define the attribute ``model``:
 
         .. attribute:: model
 
-            The Django model, e.g. ``model = models.Post``.
+            Django-SphinxQL always associates an Index to a Django model, and this
+            is the entry point for this association.
 
-        In case you want to index only particular instances you can use the
-        attribute ``query``:
+            E.g. ``model = models.Post``.
+
+        In case you want to index only particular instances, you can use the
+        class attribute ``query``:
 
         .. attribute:: query
 
-            Optional, the query it uses to index its data, e.g.
-            ``query = models.Post.filter(year__gt=2000)``.
-            If not set, Django-SphinxQL uses ``Model.objects.all()``.
-
-    We recommend defining indexes in a ``indexes.py`` module, inside your app.
-
-    When an ``Index`` is defined, it is automatically registered in the
-    :class:`~sphinxql.configurations.configurator.IndexConfigurator`.
+            Optional, the query Sphinx uses to index its data, e.g.
+            ``query = models.Post.filter(date__year__gt=2000)``. If not set,
+            Django-SphinxQL uses ``.objects.all()``.
 
 Field
 ~~~~~
 
-To identify a particular Django model attribute to be indexed, Django-SphinxQL
-uses fields:
+To identify a particular attribute of a Django model to be indexed,
+Django-SphinxQL uses fields:
+
+.. _attribute: http://sphinxsearch.com/docs/current.html#attributes
+.. _search field: http://sphinxsearch.com/docs/current.html#fields
 
 .. class:: fields.Field
 
     A field to be added to the Sphinx index. A field must always be mapped to
     a Django model field, set on its initialization::
 
-        my_indexed_text = Field('text')  # Index.Meta.model contains `text = ...`
+        my_indexed_text = FieldType('text')  # Index.Meta.model contains `text =
+        ...`
 
-    Currently it is not possible to map a field to a Django lookup expression, but
-    we expect it to be possible in Django 1.8.
+    Currently it is not possible to use Django lookups on fields, but we expect
+    it to be possible in Django 1.8.
 
-    There are two types of fields in Sphinx: attributes and indexed attributes:
+    Django-SphinxQL maps a field to a `search field`_ or a `attribute`_:
 
-    * Attributes are the equivalent to columns in relational databases and can
-      be used in :meth:`Sphinxql.query.SearchQuerySet.search_filter`.
+    * attributes are the equivalent to columns in relational databases and can
+      be used in :meth:`~sphinxql.query.SearchQuerySet.search_filter` and
+      :meth:`~sphinxql.query.SearchQuerySet.search_order_by`.
 
-    * Indexed attributes are attributes that are indexed for text search, and thus
-      can also be used for textual searches in
-      :meth:`Sphinxql.query.SearchQuerySet.search`.
+    * search fields are indexed for text search, and thus can be used for textual
+      searches with :meth:`~sphinxql.query.SearchQuerySet.search`. Sphinx **does**
+      **not store** the original content of fields.
 
-    The following fields are implemented in Django-SphinxQL:
+    The following fields are currently implemented in Django-SphinxQL:
 
     * ``Text``: indexed attribute for strings (Sphinx equivalent ``sql_field_string``).
     * ``String``: (non-indexed) attribute for strings (``sql_attr_string``).
@@ -107,5 +115,5 @@ uses fields:
 
     .. _unix timestamp: https://en.wikipedia.org/wiki/Unix_time
 
-    Sphinx ``sql_attr_timestamp`` is stored in `unix timestamp`_,
-    so, currently, Django-SphinxQL only supports dates/time since to 1970.
+    Not that Sphinx ``sql_attr_timestamp`` is stored as a `unix timestamp`_,
+    so Django-SphinxQL only supports dates/times since to 1970.
