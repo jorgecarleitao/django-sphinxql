@@ -6,7 +6,7 @@ from .core.query import Query
 from .core import base
 from .core import lookups
 from sphinxql.exceptions import NotSupportedError
-from .types import Bool, String
+from .types import Bool
 from .sql import Match, And, Neg, C, Column, All, Count
 
 
@@ -51,8 +51,7 @@ class QuerySet(object):
         self.query.fromm.append(index)
 
         # Sphinx: there can be only one match per query.
-        # This is a global constraint on queries
-        # We keep it here.
+        # This is a global constraint on queries, we keep it here.
         self._match = ''
 
         self._result_cache = None
