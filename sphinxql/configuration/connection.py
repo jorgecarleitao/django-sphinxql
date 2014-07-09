@@ -16,7 +16,7 @@ class Connection():
         host, port = configure_connection(host, port)
         self.db = MySQLdb.connect(host=host, port=port, charset='utf8')
 
-    def fetch_all(self, sql, params):
+    def iterator(self, sql, params):
         cursor = self.db.cursor()
 
         try:
@@ -25,10 +25,12 @@ class Connection():
             cursor.close()
             raise
 
-        result = list(cursor.fetchall())
+        cursor.execute(sql, params)
+
+        for x in range(cursor.rowcount):
+            yield cursor.fetchone()
 
         cursor.close()
-        return result
 
 
 def configure_connection(host, port):

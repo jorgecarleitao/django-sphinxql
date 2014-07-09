@@ -28,36 +28,13 @@ class Query(CompilableSQL):
         if connection is None:
             self._connection = Connection()
 
-    def _fetch_all(self):
-        return self._connection.fetch_all(self.as_sql(), self.get_params())
-
     def __iter__(self):
         """
         If limits are defined, returns an iterator over all results.
         else, iterates over all results using LIMIT in chunks of
         DEFAULT_LIMIT_COUNT.
         """
-        if not self._statements['limit']:
-            self._statements['limit'] = (0, DEFAULT_LIMIT_COUNT)
-
-            # the generator is over results
-            results = list(self._fetch_all())
-            while results:
-                for result in results:
-                    yield result
-
-                self._statements['limit'] = (
-                    self._statements['limit'][0] + DEFAULT_LIMIT_COUNT,
-                    DEFAULT_LIMIT_COUNT)
-                results = list(self._fetch_all())
-
-                # if the next iteration has no results, put
-                # self._statements['limit'] back to its value
-                if not results:
-                    self._statements['limit'] = None
-        else:
-            for result in self._fetch_all():
-                yield result
+        return self._connection.iterator(self.as_sql(), self.get_params())
 
     def __repr__(self):
         return self.as_sql() % self.get_params()
