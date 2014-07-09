@@ -90,11 +90,26 @@ Index configurator
 
 .. class:: IndexConfigurator
 
-    Object representing a Sphinx configuration.
+    This class is declared only once in Django-Sphinxql, and is responsible for
+    mapping your :class:`indexes <sphinxql.indexes.Index>` into a sphinx
+    ``sphinx.conf``.
 
     This class has one entry point, :meth:`register`, called automatically when
-    :class:`~sphinxql.indexes.Index` is defined. On registering an index,
-    it gathers settings from three places:
+    :class:`~sphinxql.indexes.Index` is defined.
+
+    .. method:: register(index)
+
+        Registers an :class:`~sphinxql.indexes.Index` in the configuration.
+
+        This is the entry point of this class to configure a new ``Index``.
+        A declaration of an ``Index`` automatically calls this method to register
+        itself.
+
+        This method builds the source configuration and index configuration for
+        the ``index`` and outputs the updated ``sphinx.conf`` to
+        ``INDEXES['sphinx_path']``.
+
+    On registering an index, :meth:`register` gathers settings from three places:
 
     * Django ``settings``;
     * :class:`~sphinxql.fields.Field` of the index;
@@ -103,7 +118,7 @@ Index configurator
     From ``django.settings``:
 
     * ``INDEXES['path']``: the directory where the database is created.
-    * ``INDEXES['sphinx_path']``: the directory where sphinx-related files are created (e.g. ``sphinx.conf``)
+    * ``INDEXES['sphinx_path']``: the directory for sphinx-related files.
     * ``INDEXES['indexer_params']``: a dictionary with additional parameters for
       the :class:`~configuration.configurations.IndexerConfiguration`.
     * ``INDEXES['searchd_params']``: a dictionary with additional parameters for
