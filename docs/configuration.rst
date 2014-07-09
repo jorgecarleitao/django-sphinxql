@@ -86,9 +86,7 @@ Configuration references (internal)
 Index configurator
 ^^^^^^^^^^^^^^^^^^
 
-.. currentmodule:: sphinxql.configuration.configurators
-
-.. class:: IndexConfigurator
+.. class:: configurators.IndexConfigurator
 
     This class is declared only once in Django-Sphinxql, and is responsible for
     mapping your :class:`indexes <sphinxql.indexes.Index>` into a sphinx
@@ -120,13 +118,13 @@ Index configurator
     * ``INDEXES['path']``: the directory where the database is created.
     * ``INDEXES['sphinx_path']``: the directory for sphinx-related files.
     * ``INDEXES['indexer_params']``: a dictionary with additional parameters for
-      the :class:`~configuration.configurations.IndexerConfiguration`.
+      the :class:`~configurations.IndexerConfiguration`.
     * ``INDEXES['searchd_params']``: a dictionary with additional parameters for
-      the :class:`~configuration.configurations.SearchdConfiguration`.
+      the :class:`~configurations.SearchdConfiguration`.
     * ``INDEXES['source_params']``: a dictionary with additional parameters for
-      the :class:`~configuration.configurations.SourceConfiguration`.
+      the :class:`~configurations.SourceConfiguration`.
     * ``INDEXES['index_params']``: a dictionary with additional parameters for
-      the :class:`~configuration.configurations.IndexConfiguration`.
+      the :class:`~configurations.IndexConfiguration`.
 
     The set of available parameters can be found in Sphinx documentation.
 

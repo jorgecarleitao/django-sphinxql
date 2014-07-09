@@ -9,14 +9,14 @@ To use queries with Django, see :doc:`queryset`.
 Sphinx uses a dialect of SQL, SphinxQL, to perform operations on its database.
 Django-SphinxQL has a notation equivalent to Django to construct such expressions.
 
-The basic unit of SphinxQL is the :class:`~columns.Column`. In Django-SphinxQL,
-a :class:`~sphinxql.field.Field` is a ``Column`` and thus the most explicit way
+The basic unit of SphinxQL is a column. In Django-SphinxQL, a
+:class:`~fields.Field` is a ``Column`` and thus the most explicit way
 to identify a column is to use::
 
     >>> from myapp.indexes import PostIndex
     >>> PostIndex.number  # a column
 
-However, in a :class:`SearchQuerySet`, you can use more implicit but simpler
+In a :class:`query.SearchQuerySet`, you can use more implicit but simpler
 notations::
 
     >>> PostIndex.objects.search_filter(number=2)
@@ -70,7 +70,7 @@ API references
 SQLExpression
 -------------
 
-.. class:: SQLExpression
+.. class:: core.base.SQLExpression
 
     ``SQLExpression`` is the abstraction to build arbitrary SQL expressions.
     Almost everything in Django-SphinxQL is based on it: :class:`fields.Field`,
@@ -83,12 +83,10 @@ SQLExpression
 Values
 ------
 
-.. currentmodule:: sphinxql.types
+.. class:: types.Value
 
-.. class:: Value
-
-    Subclass of :class:`SQLExpression` for constant values. Implemented by the
-    following subclasses:
+    Subclass of :class:`~core.base.SQLExpression` for constant values.
+    Implemented by the following subclasses:
 
     * ``Bool``
     * ``Integer``
@@ -110,12 +108,10 @@ Values
 Operations
 ----------
 
-.. currentmodule:: Sphinxql.sql
+.. class:: sql.BinaryOperation
 
-.. class:: BinaryOperation
-
-    Subclass of :class:`SQLExpression` for binary operations. Implemented by the
-    following subclasses:
+    Subclass of :class:`~core.base.SQLExpression` for binary operations.
+    Implemented by the following subclasses:
 
     * ``Plus``
     * ``Subtract``
