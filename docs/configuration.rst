@@ -1,7 +1,7 @@
 Sphinx Configuration
 ====================
 
-.. currentmodule:: configuration
+.. currentmodule:: sphinxql.configuration
 
 Configure Sphinx
 ----------------
@@ -86,7 +86,7 @@ Configuration references (internal)
 Index configurator
 ^^^^^^^^^^^^^^^^^^
 
-.. currentmodule:: configuration.configurators
+.. currentmodule:: sphinxql.configuration.configurators
 
 .. class:: IndexConfigurator
 
@@ -124,7 +124,7 @@ Index configurator
 source configuration
 ^^^^^^^^^^^^^^^^^^^^
 
-.. currentmodule:: configuration.configurations
+.. currentmodule:: sphinxql.configuration.configurations
 
 .. _source configuration options: http://sphinxsearch.com/docs/current.html#confgroup-source
 
@@ -149,7 +149,7 @@ source configuration
 index configuration
 ^^^^^^^^^^^^^^^^^^^
 
-.. currentmodule:: configuration.configurations
+.. currentmodule:: sphinxql.configuration.configurations
 
 .. _index configuration options: http://sphinxsearch.com/docs/current.html#confgroup-index
 
@@ -174,7 +174,7 @@ index configuration
 indexer configuration
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. currentmodule:: configuration.configurations
+.. currentmodule:: sphinxql.configuration.configurations
 
 .. _indexer configuration options: http://sphinxsearch.com/docs/current.html#confgroup-indexer
 
@@ -199,7 +199,7 @@ indexer configuration
 searchd configuration
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. currentmodule:: configuration.configurations
+.. currentmodule:: sphinxql.configuration.configurations
 
 .. _searchd configuration options: http://sphinxsearch.com/docs/current.html#confgroup-searchd
 
