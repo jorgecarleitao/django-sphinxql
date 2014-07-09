@@ -12,6 +12,10 @@ from .models import Document
 from tests import SphinxQLTestCase
 
 
+def ids_set(query):
+    return {entry.id for entry in query}
+
+
 class SimpleTestCase(SphinxQLTestCase):
 
     def setUp(self):
@@ -85,8 +89,8 @@ class SimpleQuerySetTestCase(SimpleTestCase):
     @expectedFailure
     def test_exclude(self):
         """
-        SphinxQL doesn't seem to accept queries of the form
-        "WHERE NOT condition".
+        SphinxQL does not accept queries of the form "WHERE NOT condition",
+        see http://sphinxsearch.com/bugs/view.php?id=2004.
         """
         q = self.query.filter(~(C('number') == 2))
         self.assertEqual(len(q), 0)
@@ -110,7 +114,7 @@ class SimpleQuerySetTestCase(SimpleTestCase):
     @expectedFailure
     def test_or(self):
         """
-        OR not defined in SphinxQL
+        OR not defined in SphinxQL.
         """
         q = self.query.filter(Or(C('number') == 2, C('number') > 2))
         self.assertEqual(len(q), 1)
@@ -118,7 +122,8 @@ class SimpleQuerySetTestCase(SimpleTestCase):
     @expectedFailure
     def test_compare_columns(self):
         """
-        SphinxQL does not allow comparison of columns.
+        SphinxQL does not allow comparison between columns,
+        see http://sphinxsearch.com/bugs/view.php?id=2015.
         """
         q = self.query.filter(C('added_time') > C('date'))
         self.assertEqual(len(q), 1)
@@ -133,14 +138,13 @@ class SimpleQuerySetTestCase(SimpleTestCase):
                               'FROM queryset_documentindex')
 
     def test_check_fields(self):
-        results = list(self.query)
-        self.assertEqual(len(results), 1)
+        result = self.query[0]
 
-        self.assertEqual(results[0].summary, self.document.summary)
-        self.assertEqual(results[0].text, self.document.text)
-        self.assertEqual(results[0].date, self.document.date)
-        self.assertEqual(results[0].added_time, self.document.added_time)
-        self.assertEqual(results[0].number, self.document.number)
+        self.assertEqual(result.summary, self.document.summary)
+        self.assertEqual(result.text, self.document.text)
+        self.assertEqual(result.date, self.document.date)
+        self.assertEqual(result.added_time, self.document.added_time)
+        self.assertEqual(result.number, self.document.number)
 
 
 class QuerySetLookupTestCase(SimpleTestCase):
@@ -236,3 +240,40 @@ class QuerySetTestCase(SphinxQLTestCase):
         # other ordering
         q = QuerySet(DocumentIndex).search('@text What').order_by(C('number'))
         self.assertEqual(q[0].number, 2)
+
+
+class LargeQuerySetTestCase(SphinxQLTestCase):
+
+    def setUp(self):
+        super(LargeQuerySetTestCase, self).setUp()
+
+        for x in range(1, 1005):
+            Document.objects.create(
+                summary="This is a summary", text="What a nice text. "*x,
+                date=datetime.date(2015, 2, 2) + datetime.timedelta(days=x),
+                added_time=datetime.datetime(2015, 4, 4, 12, 12, 12),
+                number=x*2)
+
+        self.documents = Document.objects.all()
+
+        self.index()
+
+    def tearDown(self):
+        Document.objects.all().delete()
+        super(LargeQuerySetTestCase, self).tearDown()
+
+    def test_count(self):
+        self.assertEqual(QuerySet(DocumentIndex).count(),
+                         self.documents.count())
+
+    def test_iterate(self):
+        with self.assertRaises(IndexError):
+            iter(QuerySet(DocumentIndex))
+
+        self.assertEqual(len(list(iter(QuerySet(DocumentIndex)[:1000]))), 1000)
+
+    def test_filter(self):
+        sphinx_query = QuerySet(DocumentIndex).filter(number__gt=30)[:1000]
+        django_query = self.documents.filter(number__gt=30)
+
+        self.assertEqual(ids_set(sphinx_query), ids_set(django_query))

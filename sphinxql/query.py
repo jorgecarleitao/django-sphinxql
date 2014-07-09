@@ -94,6 +94,9 @@ class QuerySet(object):
             yield instance
 
     def __iter__(self):
+        if self.query.limit is None:
+            raise IndexError('Sphinx does not support unbounded iterations '
+                             'over the results.')
         return iter(self._parsed_results())
 
     def __len__(self):
