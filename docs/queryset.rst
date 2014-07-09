@@ -1,12 +1,15 @@
-SearchQuerySet
-==============
+Querying with Sphinx
+====================
 
-.. currentmodule:: sphinxql
+.. currentmodule:: sphinxql.query
 
 This document presents the API of the Django-SphinxQL queryset, the high-level
 API for interacting with Sphinx from Django.
 
-.. class:: query.SearchQuerySet
+SearchQuerySet
+--------------
+
+.. class:: SearchQuerySet
 
     ``SearchQuerySet`` is a subclass of Django ``QuerySet`` to allow text-based
     search with Sphinx; This search is constructed by ``search*`` methods and is
@@ -17,7 +20,8 @@ API for interacting with Sphinx from Django.
 
         >>> q = SearchQuerySet(index, query=None, using=None)
 
-    that initializes Django's queryset from the :attr:`Index.Meta.model <indexes.Index.Meta.model>`.
+    that initializes Django's queryset from the :attr:`Index.Meta.model
+    <sphinxql.indexes.Index.Meta.model>`.
 
     The API of ``SearchQuerySet`` is the same as ``QuerySet``, with the following
     additional methods:
@@ -35,7 +39,7 @@ API for interacting with Sphinx from Django.
     .. attribute:: search_mode
 
         Defaults to ``False``, and defines whether Sphinx should be used by the
-        :class:`~query.SearchQuerySet` prior to Django database hit. Automatically
+        :class:`SearchQuerySet` prior to Django database hit. Automatically
         set to ``True`` when :meth:`search` is used.
 
     When :attr:`search_mode` is ``True``, the queryset performs a search in Sphinx
@@ -58,8 +62,8 @@ API for interacting with Sphinx from Django.
         count 1000 (can be less if Django filters some).
 
     If Sphinx is used, model objects are annotated with an attribute
-    ``search_result`` with the :class:`~indexes.Index` populated the values
-    retrieved from Sphinx database.
+    ``search_result`` with the :class:`~sphinxql.indexes.Index` populated the
+    values retrieved from Sphinx database.
 
     .. _extended query syntax: http://sphinxsearch.com/docs/current.html#extended-syntax
 
@@ -143,7 +147,7 @@ API for interacting with Sphinx from Django.
         results of the search.
 
         ``lookups`` are like Django lookups for ``filter``. Just remember that
-        the field name must be defined on the :class:`indexes.Index`.
+        the field name must be defined on the :class:`sphinxql.indexes.Index`.
 
         ``conditions`` should be :doc:`Django-SphinxQL expressions <expression>`
         that return a boolean value (e.g. ``>=``) and are used to produce more
@@ -158,3 +162,32 @@ API for interacting with Sphinx from Django.
         Like in Django, ``"id__"`` is reserved to indicate the object id (Sphinx
         shares the same ids as Django).
 
+QuerySet
+--------
+
+.. class:: query.QuerySet
+
+    ``QuerySet`` is a Django-equivalent ``QuerySet`` to indexes. I.e. contrary to
+    :class:`SearchQuerySet`, this QuerySet only interacts with the Sphinx
+    database and returns instances of the Index. This can be useful when you need
+    to present results of a search that don't need any extra data from Django.
+
+    The interface of this QuerySet is equivalent to Django QuerySet: it
+    is lazy and allows chaining. However, the current methods implemented are
+    limited:
+
+    .. method:: search(*extended_queries)
+
+        Same as :meth:`SearchQuerySet.search`.
+
+    .. method:: filter(*conditions, **lookups)
+
+        Same as :meth:`SearchQuerySet.search_filter`.
+
+    .. method:: order_by(*expressions)
+
+        Same as :meth:`SearchQuerySet.search_order_by`.
+
+    .. method:: count()
+
+        Same as Django's count.
