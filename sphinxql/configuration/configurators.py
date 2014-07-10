@@ -41,12 +41,15 @@ SPHINX_TO_DJANGO_MAP = {'user': 'sql_user',
 DJANGO_TO_SPHINX_VENDOR = {'postgresql': 'pgsql',
                            'mysql': 'mysql'}
 
+DEFAULT_INDEXER_PARAMS = {}
+
 DEFAULT_SOURCE_PARAMS = {'sql_host': 'localhost',
                          'sql_pass': '',
                          'sql_query_pre': 'SET CHARACTER_SET_RESULTS=utf8',
                          }
 
-DEFAULT_INDEX_PARAMS = {'charset_type': 'utf-8'}
+DEFAULT_INDEX_PARAMS = {'type': 'plain',
+                        'charset_type': 'utf-8'}
 
 
 class Configurator(object):
@@ -66,18 +69,23 @@ class Configurator(object):
 
         self.vendor = ''
 
+        # index
+        self.index_params = DEFAULT_INDEX_PARAMS
+        self.index_params.update(settings.INDEXES.get('index_params', {}))
+
+        # source
+        self.source_params = DEFAULT_SOURCE_PARAMS
+        self.source_params.update(settings.INDEXES.get('source_params', {}))
+
+        # searchd
         searchd_params = {'listen': '9306:mysql41',
                           'pid_file': os.path.join(self.sphinx_path,
                                                    'searchd.pid')}
         searchd_params.update(settings.INDEXES.get('searchd_params', {}))
 
-        # default params of index
-        self.index_params = DEFAULT_INDEX_PARAMS
-        self.index_params.update(settings.INDEXES.get('index_params', {}))
-
-        self.source_params = settings.INDEXES.get('source_params', {})
-
-        indexer_params = settings.INDEXES.get('indexer_params', {})
+        # indexer
+        indexer_params = DEFAULT_INDEXER_PARAMS
+        indexer_params.update(settings.INDEXES.get('indexer_params', {}))
 
         self.indexer_conf = IndexerConfiguration(indexer_params)
         self.searchd_conf = SearchdConfiguration(searchd_params)
@@ -101,10 +109,7 @@ class Configurator(object):
         source_conf = self._conf_source_from_index(index)
         self.sources_confs.append(source_conf)
 
-        index_path = os.path.join(self.path, source_conf.name)
-        index_conf = self._conf_index_from_index(index,
-                                                 source_conf.name,
-                                                 index_path)
+        index_conf = self._conf_index_from_index(index, source_conf.name)
         self.indexes_confs.append(index_conf)
 
         # since we don't know when the last index is registered,
@@ -128,16 +133,11 @@ class Configurator(object):
         if connections[query.db].vendor not in DJANGO_TO_SPHINX_VENDOR:
             raise ImproperlyConfigured('Django-SphinxQL currently only supports '
                                        'mysql and postgresql backends')
+        self.vendor = DJANGO_TO_SPHINX_VENDOR[connections[query.db].vendor]
 
-        source_attrs = add_source_conf_param(
-            source_attrs,
-            'type',
-            DJANGO_TO_SPHINX_VENDOR[connections[query.db].vendor])
-        self.vendor = source_attrs['type']
+        source_attrs = add_source_conf_param(source_attrs, 'type', self.vendor)
 
         ### build connection parameters from Django connection parameters
-        source_attrs.update(DEFAULT_SOURCE_PARAMS)
-
         connection_params = connections[query.db].get_connection_params()
         for key in connection_params:
             if key in SPHINX_TO_DJANGO_MAP:
@@ -148,13 +148,13 @@ class Configurator(object):
 
         ### create parameters for fields and attributes
         for field in index.Meta.fields:
-            sphinx_field_name = getattr(field, '_sphinx_field_name')
+            sphinx_field_name = field._sphinx_field_name
 
             source_attrs = add_source_conf_param(source_attrs,
                                                  sphinx_field_name,
                                                  field.name)
 
-        ### the query
+        ### add the query
         source_attrs = add_source_conf_param(
             source_attrs,
             'sql_query',
@@ -204,13 +204,14 @@ class Configurator(object):
         # transform into SQL
         return str(query.query)
 
-    def _conf_index_from_index(self, index, source_name, path):
+    def _conf_index_from_index(self, index, source_name):
         """
         Maps a ``Index`` into a Sphinx index configuration.
         """
-        index_params = {'type': 'plain',
-                        'path': path,
-                        'source': source_name}
+        index_params = {
+            'source': source_name,
+            'path': os.path.join(self.path, source_name)
+        }
         index_params.update(self.index_params)
 
         return IndexConfiguration(index.build_name(), index_params)
@@ -227,10 +228,7 @@ class Configurator(object):
         self.indexes_confs.clear()
         for index in self.indexes.values():
             source_conf = self._conf_source_from_index(index)
-            index_path = os.path.join(self.path, source_conf.name)
-            index_conf = self._conf_index_from_index(index,
-                                                     source_conf.name,
-                                                     index_path)
+            index_conf = self._conf_index_from_index(index, source_conf.name)
             self.sources_confs.append(source_conf)
             self.indexes_confs.append(index_conf)
 
