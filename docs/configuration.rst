@@ -112,7 +112,9 @@ For example::
 
 .. _Sphinx documentation: http://sphinxsearch.com/docs/current.html#conf-reference
 
-You can also override
+You can also override settings of ``source`` and ``index`` only for a particular
+index by defining :attr:`~sphinxql.indexes.Index.Meta.source_params` and
+:attr:`~sphinxql.indexes.Index.Meta.index_params`.
 
 .. note::
 
