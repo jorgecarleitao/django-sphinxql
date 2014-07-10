@@ -25,7 +25,8 @@ def add_source_conf_param(source_conf, key, value):
     elif key in constants.source_single_valued_parameters:
         source_conf[key] = value
     else:
-        raise ImproperlyConfigured('Invalid parameter "%s" in source configuration' % key)
+        raise ImproperlyConfigured('Invalid parameter "%s" in source '
+                                   'configuration' % key)
     return source_conf
 
 
@@ -56,7 +57,8 @@ class Configurator(object):
     """
     def __init__(self):
         if not hasattr(settings, 'INDEXES'):
-            raise ImproperlyConfigured('Django-SphinxQL requires settings.INDEXES')
+            raise ImproperlyConfigured('Django-SphinxQL requires '
+                                       'settings.INDEXES')
 
         self.sphinx_path = settings.INDEXES.get('sphinx_path')
         self.path = settings.INDEXES['PATH']
@@ -65,7 +67,8 @@ class Configurator(object):
         self.vendor = ''
 
         searchd_params = {'listen': '9306:mysql41',
-                          'pid_file': os.path.join(self.sphinx_path, 'searchd.pid')}
+                          'pid_file': os.path.join(self.sphinx_path,
+                                                   'searchd.pid')}
         searchd_params.update(settings.INDEXES.get('searchd_params', {}))
 
         # default params of index
@@ -85,8 +88,8 @@ class Configurator(object):
 
     def register(self, index):
         """
-        Registers an index to the configurator
-        and outputs the updated sphinx.conf file.
+        Registers an index to the configurator and outputs the updated
+        sphinx.conf file.
         """
         meta = getattr(index.Meta.model, '_meta', None)
         assert meta is not None
@@ -96,14 +99,17 @@ class Configurator(object):
 
         # build the source and index config.
         source_conf = self._conf_source_from_index(index)
+        self.sources_confs.append(source_conf)
 
         index_path = os.path.join(self.path, source_conf.name)
-        index_conf = self._conf_index_from_index(index, source_conf.name, index_path)
-        self.sources_confs.append(source_conf)
+        index_conf = self._conf_index_from_index(index,
+                                                 source_conf.name,
+                                                 index_path)
         self.indexes_confs.append(index_conf)
 
         # since we don't know when the last index is registered,
-        # we output every registration.
+        # we output on every registration.
+        # todo: in Django 1.7 this could done on app.ready()
         self.output()
 
     def _conf_source_from_index(self, index):
@@ -120,12 +126,13 @@ class Configurator(object):
 
         ### select type from backend
         if connections[query.db].vendor not in DJANGO_TO_SPHINX_VENDOR:
-            raise ImproperlyConfigured('Django-SphinxQL currently only supports mysql '
-                                       'and postgresql backends')
+            raise ImproperlyConfigured('Django-SphinxQL currently only supports '
+                                       'mysql and postgresql backends')
 
-        source_attrs = add_source_conf_param(source_attrs,
-                                             'type',
-                                             DJANGO_TO_SPHINX_VENDOR[connections[query.db].vendor])
+        source_attrs = add_source_conf_param(
+            source_attrs,
+            'type',
+            DJANGO_TO_SPHINX_VENDOR[connections[query.db].vendor])
         self.vendor = source_attrs['type']
 
         ### build connection parameters from Django connection parameters
@@ -177,7 +184,8 @@ class Configurator(object):
             if vendor == 'mysql':
                 if field.type() in (DateTime, Date):
                     # for dates, we need the timestamp.
-                    # To ensure we get the correct timestamp (i.e. same as Django uses),
+                    # To ensure we get the correct timestamp
+                    # (i.e. same as Django uses),
                     # in mysql we convert it to UTC.
                     sql = "UNIX_TIMESTAMP(CONVERT_TZ(" \
                           "%s, " \
@@ -185,7 +193,8 @@ class Configurator(object):
                           "@@session.time_zone))"
             if vendor == 'pgsql':
                 if field.type() is DateTime:
-                    sql = "EXTRACT(EPOCH FROM %s AT TIME ZONE '%s')" % ('%s', settings.TIME_ZONE)
+                    sql = "EXTRACT(EPOCH FROM %s AT TIME ZONE '%s')" % \
+                          ('%s', settings.TIME_ZONE)
                 elif field.type() is Date:
                     sql = "EXTRACT(EPOCH FROM %s)"
             select["%s" % alias] = sql % column_name
@@ -210,8 +219,8 @@ class Configurator(object):
         """
         This reconfigures the existing indexes.
 
-        this is to implement an hack for tests: Django does not support apps using its connections
-        on loading for tests; see warning in
+        this is to implement an hack for tests: Django does not support apps using
+        its connections on loading for tests; see warning in
         https://docs.djangoproject.com/en/1.7/ref/applications/#django.apps.AppConfig.ready
         """
         self.sources_confs.clear()
@@ -219,7 +228,9 @@ class Configurator(object):
         for index in self.indexes.values():
             source_conf = self._conf_source_from_index(index)
             index_path = os.path.join(self.path, source_conf.name)
-            index_conf = self._conf_index_from_index(index, source_conf.name, index_path)
+            index_conf = self._conf_index_from_index(index,
+                                                     source_conf.name,
+                                                     index_path)
             self.sources_confs.append(source_conf)
             self.indexes_confs.append(index_conf)
 
@@ -229,7 +240,8 @@ class Configurator(object):
         """
         Outputs the configuration file `sphinx.conf`.
         """
-        string = "#WARNING! This file was automatically generated: do not modify it.\n\n"
+        string = "# WARNING! This file was automatically generated: do not " \
+                 "modify it.\n\n"
 
         # output all source and indexes
         for i in range(len(self.indexes)):
