@@ -137,6 +137,8 @@ Known limitations
 * Does not allow to index data from lookups (constraint on Django ticket 14030_)
 * Null values are considered empty strings or 0 (constraint on Sphinx engine)
 * Only supports dates and times since 1970 (constraint on Sphinx engine)
+* Most Sphinx functionalities are not implemented, most notably real time indexes.
+* **Only supports Python 3 yet**
 
 .. note::
 
