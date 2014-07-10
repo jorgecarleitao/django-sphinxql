@@ -6,7 +6,7 @@ Sphinx Configuration
 Configure Sphinx
 ----------------
 
-.. info::
+.. note::
 
     This part of the documentation requires a minimal understanding of Sphinx.
 
@@ -29,9 +29,7 @@ Equivalently to Django,  the ``sources`` and ``indexes`` of ``sphinx.conf`` are
 configured by an ORM (see :doc:`indexes`); ``indexer`` and ``searchd`` are
 configured by settings in Django settings.
 
-Like Django, Django-SphinxQL already provides a (conservative) default
-configuration for Sphinx (e.g. it automatically sets Sphinx to assume unicode).
-Django-SphinxQL requires you to define two settings:
+Django-SphinxQL requires the user to define two settings:
 
 * ``INDEXES['path']``: the path of the database (a directory)
 * ``INDEXES['sphinx_path']``: the path for sphinx-related files (a directory)
@@ -49,8 +47,11 @@ For example::
        files inside (Sphinx database). c) 'sphinx_path' will contain 3 files:
        ``pid file``, ``searchd.log``, and ``sphinx.conf``.
 
+Like Django, Django-SphinxQL already provides a (conservative) default
+configuration for Sphinx (e.g. it automatically sets Sphinx to assume unicode).
+
 Default settings
-~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^
 
 Django-SphinxQL uses the following default settings::
 
@@ -58,6 +59,7 @@ Django-SphinxQL uses the following default settings::
         'sql_query_pre': 'SET CHARACTER_SET_RESULTS=utf8'
     }
     'index_params': {
+        'type': 'plain',
         'charset_type': 'utf-8'
     }
     'searchd_params': {
@@ -65,18 +67,22 @@ Django-SphinxQL uses the following default settings::
         'pid_file': os.path.join(INDEXES['sphinx_path'], 'searchd.pid')
     }
 
+.. _override-settings:
+
 Defining and overriding settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Django-SphinxQL applies settings in cascade, overriding previous settings if
 necessary, in the following order:
 
-1. first it uses Django-SphinxQL's default settings
-2. them it applies the ones in ``settings.INDEXES``
+1. first, it uses Django-SphinxQL's default settings
+2. them, it applies settings of ``settings.INDEXES``, possibly overriding some
+   settings in 1.
 3. finally, it applies the settings defined in the :class:`Index.Meta
-   <sphinxql.indexes.Index.Meta>` to that specific index.
+   <sphinxql.indexes.Index.Meta>` to that specific index, possibly overriding
+   settings in 2.
 
-To override settings, you can use:
+To project-wise settings, use:
 
 * ``INDEXES['searchd_params']``
 * ``INDEXES['indexer_params']``
@@ -105,6 +111,8 @@ For example::
     }
 
 .. _Sphinx documentation: http://sphinxsearch.com/docs/current.html#conf-reference
+
+You can also override
 
 .. note::
 

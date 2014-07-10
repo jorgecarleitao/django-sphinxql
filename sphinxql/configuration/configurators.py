@@ -123,6 +123,7 @@ class Configurator(object):
         """
         source_attrs = {}
         source_attrs.update(self.source_params)
+        source_attrs.update(getattr(index.Meta, 'source_params', {}))
 
         if hasattr(index.Meta, 'query'):
             query = index.Meta.query
@@ -213,6 +214,7 @@ class Configurator(object):
             'path': os.path.join(self.path, source_name)
         }
         index_params.update(self.index_params)
+        index_params.update(getattr(index.Meta, 'index_params', {}))
 
         return IndexConfiguration(index.build_name(), index_params)
 

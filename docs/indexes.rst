@@ -59,7 +59,7 @@ Index
 
             The model of this index. E.g. ``model = blog.models.Post``.
 
-        In case you want to index only particular instances, you can use the
+        In case you want to index only particular instances, you can define the
         class attribute ``query``:
 
         .. attribute:: query
@@ -67,6 +67,23 @@ Index
             Optional, the query Sphinx uses to index its data, e.g.
             ``query = models.Post.objects.filter(date__year__gt=2000)``. If not
             set, Django-SphinxQL uses ``.objects.all()``.
+
+        In case you want to override Sphinx settings only to this particular
+        index, you can also define the following class attributes:
+
+        .. attribute:: source_params
+
+            A dictionary of Sphinx options to override Sphinx settings of
+            ``source`` for this particular index.
+
+            See how to use in :ref:`override-settings`.
+
+        .. attribute:: index_params
+
+            A dictionary of Sphinx options to override Sphinx settings of
+            ``index`` for this particular index.
+
+            See how to use in :ref:`override-settings`.
 
 Field
 ~~~~~
