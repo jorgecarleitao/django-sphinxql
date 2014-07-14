@@ -181,17 +181,7 @@ class Function(SQLExpression):
 
     @staticmethod
     def _format_parameters(iterable):
-        sql = ''
-        first = True
-        for value in iterable:
-            if first:
-                separator = ''
-                first = False
-            else:
-                separator = ', '
-
-            sql += separator + value.as_sql()
-        return sql
+        return ', '.join([value.as_sql() for value in iterable])
 
     def as_sql(self):
         return '{function}({parameters_sql})'\
