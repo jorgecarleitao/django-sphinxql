@@ -36,8 +36,8 @@ class Query(CompilableSQL):
         """
         return self._connection.iterator(self.as_sql(), self.get_params())
 
-    def __repr__(self):
-        return self.as_sql() % self.get_params()
+    def __str__(self):
+        return self.as_sql() % tuple("\"%s\"" % x for x in self.get_params())
 
     def __len__(self):
         return len(list(iter(self)))
