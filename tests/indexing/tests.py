@@ -38,7 +38,8 @@ class IndexTestCase(SphinxQLTestCase):
             date=now().date(),
             added_time=now(),
             number=2, float=2.2, bool=True,
-            unicode='câmara')
+            unicode='câmara',
+            slash='/summary')
         self.index()
 
         self.query = Query()
@@ -89,3 +90,12 @@ class IndexTestCase(SphinxQLTestCase):
 
         self.query.where = Match('@unicode c mara')
         self.assertEqual(len(self.query), 0)
+
+    def test_slash(self):
+        """
+        Issue #6: slashes must be escaped correctly.
+        """
+        self.query.where = Match('@slash /summary')
+
+        self.assertTrue(r'\/' in str(self.query))
+        self.assertEqual(len(self.query), 1)

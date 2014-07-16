@@ -15,3 +15,5 @@ class Document(models.Model):
     bool = models.BooleanField()
 
     unicode = models.CharField(max_length=254)
+
+    slash = models.CharField(max_length=20)

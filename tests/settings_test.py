@@ -37,6 +37,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 INDEXES = {
     'PATH': os.path.join(BASE_DIR, '_index'),
     'sphinx_path': BASE_DIR,
-    'index_params': {'charset_table': '0..9, A..Z->a..z, _, a..z, '
+    'index_params': {'charset_table': '0..9, A..Z->a..z, _, a..z, /, '
                      'U+00E2'}
 }

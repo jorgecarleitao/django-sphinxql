@@ -225,6 +225,11 @@ class Match(UnitaryFunction):
     def __init__(self, argument):
         #Match always receives a string
         assert isinstance(argument, str)
+
+        # See issue #6:
+        # slash `/` must be escaped on MATCH.
+        argument = argument.replace('/', r'\/')
+
         super(UnitaryFunction, self).__init__([String(argument)])
 
 

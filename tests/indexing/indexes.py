@@ -18,5 +18,7 @@ class DocumentIndex(indexes.Index):
 
     unicode = fields.Text(model_attr='unicode')
 
+    slash = fields.Text(model_attr='slash')
+
     class Meta:
         model = Document
