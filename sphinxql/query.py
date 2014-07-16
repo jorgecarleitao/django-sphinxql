@@ -1,46 +1,13 @@
 from collections import OrderedDict
 
-from django.db.models import query
+import django.db.models.query
 
 from .core.query import Query
 from .core import base
-from .core import lookups
+from .core.lookups import LOOKUP_SEPARATOR, parse_lookup
 from sphinxql.exceptions import NotSupportedError
 from .types import Bool
 from .sql import Match, And, Neg, C, Column, All, Count
-
-
-LOOKUP_SEPARATOR = '__'
-
-
-def parse_lookup(lhs, rhs):
-    assert lhs
-    parts = lhs.split(LOOKUP_SEPARATOR)
-
-    if len(parts) > 2:
-        raise NotImplementedError('Currently Django-SphinxQL only accepts'
-                                  'lookups having up to 1 \'__\'.')
-
-    if len(parts) == 1:
-        parts.append('eq')
-
-    if parts[0] == 'id':
-        column = C('@id')
-    else:
-        column = C(parts[0])
-    lookup = parts[1]
-
-    try:
-        operation = lookups.LOOKUPS[lookup]
-    except KeyError:
-        raise KeyError('Lookup \'{0}\' not valid. '
-                       'Check documentation on available lookups.'
-                       .format(parts[1]))
-
-    if lookup not in ('in', 'nin', 'range', 'nrange'):
-        rhs = base.convert(rhs)
-
-    return operation(column, rhs)
 
 
 class QuerySet(object):
@@ -97,7 +64,7 @@ class QuerySet(object):
         if self.query.limit is None:
             raise IndexError('Sphinx does not support unbounded iterations '
                              'over the results.')
-        return iter(self._parsed_results())
+        return self._parsed_results()
 
     def __len__(self):
         if self._fetch_cache is not None:
@@ -109,7 +76,8 @@ class QuerySet(object):
             raise TypeError
         if isinstance(item, slice):
             if item.stop is None:
-                raise NotSupportedError('Sphinx does not support unbounded slicing.')
+                raise NotSupportedError('Sphinx does not support '
+                                        'unbounded slicing.')
 
         if isinstance(item, slice):
             offset = item.start or 0
@@ -222,7 +190,7 @@ class QuerySet(object):
         return clone
 
 
-class SearchQuerySet(query.QuerySet):
+class SearchQuerySet(django.db.models.query.QuerySet):
     """
     A queryset to translate search results into Django models.
     """
@@ -238,7 +206,8 @@ class SearchQuerySet(query.QuerySet):
 
     def search_filter(self, *conditions, **lookups):
         clone = self._clone()
-        clone._sphinx_queryset = self._sphinx_queryset.filter(*conditions, **lookups)
+        clone._sphinx_queryset = self._sphinx_queryset.filter(*conditions,
+                                                              **lookups)
         return clone
 
     def search(self, *extended_queries):
@@ -272,16 +241,18 @@ class SearchQuerySet(query.QuerySet):
 
         # hit Sphinx: ordered results with index objects populated
         indexes = OrderedDict([(index_obj.id, index_obj)
-                               for index_obj in self._sphinx_queryset[:self.max_search_count]])
+                               for index_obj in
+                               self._sphinx_queryset[:self.max_search_count]])
 
         # hit Django: ordered results with model objects populated
         clone = self._get_query(indexes.keys())
-        models = OrderedDict([(obj._get_pk_val(), obj) for obj in clone])
+        models = OrderedDict([(obj.id, obj) for obj in clone])
 
         # exclude objects excluded by Django query
         # annotate models with search_result.
         self._result_cache = []
-        if self._sphinx_queryset.query.order_by and not self._has_explicit_ordering():
+        if self._sphinx_queryset.query.order_by and \
+                not self._has_explicit_ordering():
             for id in indexes:
                 if id in models:
                     # annotate `search_result`
@@ -300,7 +271,8 @@ class SearchQuerySet(query.QuerySet):
         If `id_list` is None, hits Sphinx to retrieve it.
         """
         if id_list is None:
-            id_list = [index_obj.id for index_obj in self._sphinx_queryset[:self.max_search_count]]
+            id_list = [index_obj.id for index_obj in
+                       self._sphinx_queryset[:self.max_search_count]]
         clone = self._clone()
         clone = clone.filter(pk__in=id_list)
         clone.search_mode = False
@@ -333,7 +305,8 @@ class SearchQuerySet(query.QuerySet):
         query = self.query.clone()
         if self._sticky_filter:
             query.filter_is_sticky = True
-        c = klass(index=self._index, query=query, using=self._db)  # this line is different
+        # next line is different: first argument is index instead of model
+        c = klass(index=self._index, query=query, using=self._db)
         c._for_write = self._for_write
         c._prefetch_related_lookups = self._prefetch_related_lookups[:]
         c._known_related_objects = self._known_related_objects
