@@ -18,7 +18,7 @@ class SphinxQLTestCase(TestCase):
     def setUp(self):
         super(SphinxQLTestCase, self).setUp()
 
-        configuration.indexes_configurator.path = settings.INDEXES['PATH'] + '_test'
+        configuration.indexes_configurator.path = settings.INDEXES['path'] + '_test'
         # Django does not support apps using its connections on loading, see
         # https://docs.djangoproject.com/en/1.7/ref/applications/#django.apps.AppConfig.ready
         # Doing so picks the wrong database for tests.
@@ -35,7 +35,7 @@ class SphinxQLTestCase(TestCase):
         configuration.stop()
 
         shutil.rmtree(configuration.indexes_configurator.path)
-        configuration.indexes_configurator.path = settings.INDEXES['PATH']
+        configuration.indexes_configurator.path = settings.INDEXES['path']
 
     def index(self):
         """
