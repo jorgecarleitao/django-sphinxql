@@ -64,7 +64,7 @@ class Configurator(object):
                                        'settings.INDEXES')
 
         self.sphinx_path = settings.INDEXES.get('sphinx_path')
-        self.path = settings.INDEXES['PATH']
+        self.path = settings.INDEXES['path']
         self.sphinx_file = os.path.join(self.sphinx_path, 'sphinx.conf')
 
         self.vendor = ''
