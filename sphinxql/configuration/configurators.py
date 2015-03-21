@@ -45,7 +45,6 @@ DEFAULT_INDEXER_PARAMS = {}
 
 DEFAULT_SOURCE_PARAMS = {'sql_host': 'localhost',
                          'sql_pass': '',
-                         'sql_query_pre': 'SET CHARACTER_SET_RESULTS=utf8',
                          }
 
 DEFAULT_INDEX_PARAMS = {'type': 'plain',
@@ -137,6 +136,10 @@ class Configurator(object):
         self.vendor = DJANGO_TO_SPHINX_VENDOR[connections[query.db].vendor]
 
         source_attrs = add_source_conf_param(source_attrs, 'type', self.vendor)
+
+        if self.vendor == 'mysql':
+            source_attrs = add_source_conf_param(source_attrs, 'sql_query_pre',
+                                                 'SET CHARACTER_SET_RESULTS=utf8')
 
         ### build connection parameters from Django connection parameters
         connection_params = connections[query.db].get_connection_params()

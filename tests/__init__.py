@@ -1,7 +1,7 @@
 import shutil
 
 from django.conf import settings
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from sphinxql import configuration
 from sphinxql.configuration import call_process
@@ -13,7 +13,7 @@ except ImportError:
     pass
 
 
-class SphinxQLTestCase(TestCase):
+class SphinxQLTestCase(TransactionTestCase):
 
     def setUp(self):
         super(SphinxQLTestCase, self).setUp()
