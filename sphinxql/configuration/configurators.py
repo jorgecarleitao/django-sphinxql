@@ -47,6 +47,9 @@ DEFAULT_SOURCE_PARAMS = {'sql_host': 'localhost',
                          'sql_pass': '',
                          }
 
+DEFAULT_SEARCHD_PARAMS = {'listen': '9306:mysql41',
+                          }
+
 DEFAULT_INDEX_PARAMS = {'type': 'plain'}
 
 
@@ -76,9 +79,8 @@ class Configurator(object):
         self.source_params.update(settings.INDEXES.get('source_params', {}))
 
         # searchd
-        searchd_params = {'listen': '9306:mysql41',
-                          'pid_file': os.path.join(self.sphinx_path,
-                                                   'searchd.pid')}
+        searchd_params = DEFAULT_SEARCHD_PARAMS
+        searchd_params['pid_file'] = os.path.join(self.sphinx_path, 'searchd.pid')
         searchd_params.update(settings.INDEXES.get('searchd_params', {}))
 
         # indexer
