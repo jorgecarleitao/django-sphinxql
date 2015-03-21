@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/jorgecarleitao/django-sphinxql.svg)](https://travis-ci.org/jorgecarleitao/django-sphinxql)
+
 Django-SphinxQL implements [Sphinx search](sphinxsearch.com) for
 [Django](djangoproject.com), thanks for checking it out.
 
@@ -19,18 +21,28 @@ All tests are in the directory `tests`. To run them, use:
 
     PYTHONPATH=..:$PYTHONPATH django-admin.py test --settings=tests.settings_test tests
 
-**This project is pre-alpha.**
+Django-SphinxQL supports:
+- Python 3
+- mysql and postgres
+- latest Django
+- latest Sphinx
+
+Our testing matrix uses the latest Django, Sphinx 2.2.6, with two builds, mysql
+and postgres. For more details, you can check directory `tests` and `.travis.yml`.
+
+**This project is in alpha stage.**
 
 Installation
 ------------
 
 Django-SphinxQL has no requirements besides Django and Sphinx.
-To install Sphinx (locally or on a server), use (example of 2.1.8):
+To install Sphinx, use:
 
-    wget http://sphinxsearch.com/files/sphinx-2.1.8-release.tar.gz
-    tar -xf sphinx-2.1.8-release.tar.gz
-    cd sphinx-2.1.8-release
-    ./configure --prefix=$HOME
+    export VERSION=2.2.6
+    wget http://sphinxsearch.com/files/sphinx-$VERSION-release.tar.gz
+    tar -xf sphinx-$VERSION-release.tar.gz
+    cd sphinx-$VERSION-release
+    ./configure --prefix=$HOME --with-pgsql
     make
     make install
 
@@ -38,18 +50,16 @@ To install Django-SphinxQL, use:
 
     pip install git+https://github.com/jorgecarleitao/django-sphinxql.git
 
-and add it to the ``INSTALLED_APPS``. Django-SphinxQL does not define any model:
-it only installs management commands.
-
 Minimal configuration
 ---------------------
 
-To configure Django-SphinxQL, add ``INDEXES`` to settings:
+1. add `sphinxql` to the ``INSTALLED_APPS`` (this only installs management commands);
+2. add ``INDEXES`` to settings:
 
-    INDEXES = {
-        'path': os.path.join(BASE_DIR, '_index'),  # don't forget to `mkdir _index`.
-        'sphinx_path': BASE_DIR
-    }
+        INDEXES = {
+            'path': os.path.join(BASE_DIR, '_index'),  # also do `mkdir _index`.
+            'sphinx_path': BASE_DIR
+        }
 
 - ``path`` is where Sphinx database is going to be created
 - ``sphinx_path`` is the directory that will contain Sphinx-specific files.
@@ -87,10 +97,9 @@ Then, start Sphinx (only has to be started once):
 Search your indexes
 -------------------
 
-Django-SphinxQL defines a subclass of Django ``QuerySet``'s,
-:class:`~sphinxql.query.SearchQuerySet`, that interfaces with all Sphinx-related
-operations. ``SearchQuerySet`` *only adds functionality*: if you don't use it,
-it is a ``QuerySet``.
+Django-SphinxQL defines a subclass of Django ``QuerySet``'s, that interfaces with
+all Sphinx-related operations. ``SearchQuerySet`` *only adds functionality*: if you
+don't use it, it is a ``QuerySet``.
 
 Sphinx has a dedicated syntax for text search and Django-SphinxQL accepts it:
 
@@ -115,7 +124,7 @@ Known limitations
 -----------------
 
 * Only supports ``mysql`` and ``postgres`` backends (constraint on Sphinx engine)
-* Does not allow to index data from lookups (constraint on Django [ticket 14030](https://code.djangoproject.com/ticket/14030))
+* Does not allow to index data from lookups
 * Null values are considered empty strings or 0 (constraint on Sphinx engine)
 * Only supports dates and times since 1970 (constraint on Sphinx engine)
 * Most Sphinx functionalities *are not* implemented, most notabily real time indexes.
