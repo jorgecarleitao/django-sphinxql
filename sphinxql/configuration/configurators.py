@@ -47,8 +47,7 @@ DEFAULT_SOURCE_PARAMS = {'sql_host': 'localhost',
                          'sql_pass': '',
                          }
 
-DEFAULT_INDEX_PARAMS = {'type': 'plain',
-                        'charset_type': 'utf-8'}
+DEFAULT_INDEX_PARAMS = {'type': 'plain'}
 
 
 class Configurator(object):

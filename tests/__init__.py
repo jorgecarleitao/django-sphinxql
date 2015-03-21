@@ -1,5 +1,3 @@
-import shutil
-
 from django.conf import settings
 from django.test import TransactionTestCase
 
@@ -27,25 +25,9 @@ class SphinxQLTestCase(TransactionTestCase):
 
         call_process(['mkdir', configuration.indexes_configurator.path], fail_silently=True)
 
-        self.addCleanup(self.cleanup)
-
-    def cleanup(self):
-        # This is required between tests because searchd
-        # returns results even after removing the indexes.
-        configuration.stop()
-
-        shutil.rmtree(configuration.indexes_configurator.path)
-        configuration.indexes_configurator.path = settings.INDEXES['path']
-
     def index(self):
         """
         Called on SetUp to index the models for the first time.
         """
         configuration.index()
         configuration.start()
-
-    def reindex(self):
-        """
-        Called on tests to reindex data if new models are created.
-        """
-        configuration.index()

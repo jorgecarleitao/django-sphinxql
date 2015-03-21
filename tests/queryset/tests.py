@@ -95,12 +95,7 @@ class SimpleQuerySetTestCase(SimpleTestCase):
         q = self.query.filter(~(C('number') == 2))
         self.assertEqual(len(q), 0)
 
-    @expectedFailure
     def test_filter_string(self):
-        """
-        Sphinx does not allow filter strings using SQL:
-        http://sphinxsearch.com/bugs/view.php?id=1652
-        """
         q = self.query.filter(C('summary') == 'This')
         self.assertEqual(len(q), 0)
 
