@@ -129,7 +129,7 @@ class SimpleQuerySetTestCase(SimpleTestCase):
         self.assertEqual(len(q), 1)
 
     def test_date_comparison(self):
-        q = self.query.filter(C('date') > datetime.datetime.now())
+        q = self.query.filter(C('date') < datetime.datetime(2016, 1, 1))
         self.assertEqual(len(q), 1)
 
     def test_main_sql(self):
