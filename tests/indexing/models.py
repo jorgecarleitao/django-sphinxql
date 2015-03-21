@@ -12,7 +12,7 @@ class Document(models.Model):
 
     float = models.FloatField()
 
-    bool = models.BooleanField()
+    bool = models.BooleanField(default=False)
 
     unicode = models.CharField(max_length=254)
 

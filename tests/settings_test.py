@@ -24,6 +24,8 @@ INSTALLED_APPS = ('tests.query', 'tests.queryset', 'tests.indexing')
 
 SECRET_KEY = "django_tests_secret_key"
 
+MIDDLEWARE_CLASSES = ()
+
 # Use a fast hasher to speed up tests.
 PASSWORD_HASHERS = (
     'django.contrib.auth.hashers.MD5PasswordHasher',
