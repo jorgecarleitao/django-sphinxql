@@ -64,9 +64,18 @@ Index
 
         .. attribute:: query
 
-            Optional, the query Sphinx uses to index its data, e.g.
+            Optional. The query Sphinx uses to index its data, e.g.
             ``query = models.Post.objects.filter(date__year__gt=2000)``. If not
             set, Django-SphinxQL uses ``.objects.all()``.
+
+        .. _ranged-queries: http://sphinxsearch.com/docs/current.html#ranged-queries
+
+        .. attribute:: range_step
+
+            Optional. Defining it automatically enables ranged-queries_.
+            This integer defines the number of rows per query retrieved during
+            indexing. It increases the number of queries during indexing, but
+            reduces the amount of data transfer for each query.
 
         In case you want to override Sphinx settings only to this particular
         index, you can also define the following class attributes:

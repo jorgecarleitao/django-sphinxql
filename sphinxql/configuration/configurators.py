@@ -159,6 +159,17 @@ class Configurator(object):
                                                  sphinx_field_name,
                                                  field.name)
 
+        if hasattr(index.Meta, 'range_step'):
+            # see http://sphinxsearch.com/docs/current.html#ranged-queries
+            range_step = int(index.Meta.range_step)
+
+            source_attrs = add_source_conf_param(
+                source_attrs, 'sql_query_range',
+                'SELECT MIN(id),MAX(id) FROM %s' % index.Meta.model._meta.db_table)
+            source_attrs = add_source_conf_param(
+                source_attrs, 'sql_range_step', range_step)
+            query = query.extra(where=['id>=$start AND id<=$end'])
+
         ### add the query
         source_attrs = add_source_conf_param(
             source_attrs,

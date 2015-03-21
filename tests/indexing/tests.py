@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from django.utils.timezone import now
 
-from sphinxql.core.base import DateTime, Date
+from sphinxql.core.base import DateTime, Date, Count, All
 from sphinxql.exceptions import ImproperlyConfigured
 from sphinxql.query import Query
 from sphinxql.sql import Match
@@ -99,3 +99,32 @@ class IndexTestCase(SphinxQLTestCase):
 
         self.assertTrue(r'\/' in str(self.query))
         self.assertEqual(len(self.query), 1)
+
+
+class IndexSeveralTestCase(SphinxQLTestCase):
+
+    def setUp(self):
+        super(IndexSeveralTestCase, self).setUp()
+
+        for x in range(1000):
+            self.document = Document.objects.create(
+                summary="This is a summary", text="What a nice text",
+                date=now().date(),
+                added_time=now(),
+                number=x, float=2.2, bool=True,
+                unicode='câmara',
+                slash='/summary')
+        self.index()
+
+        self.query = Query()
+        self.query.fromm.append(DocumentIndex)
+
+    def tearDown(self):
+        Document.objects.all().delete()
+        super(IndexSeveralTestCase, self).tearDown()
+
+    def test_range_query(self):
+        query = Query()
+        query.fromm.append(DocumentIndex)
+        query.select.append(Count(All()))
+        self.assertEqual(list(query)[0][1], 1000)

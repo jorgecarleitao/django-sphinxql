@@ -22,3 +22,4 @@ class DocumentIndex(indexes.Index):
 
     class Meta:
         model = Document
+        range_step = 100
