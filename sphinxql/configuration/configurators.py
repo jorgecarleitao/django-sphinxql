@@ -1,8 +1,11 @@
 from collections import OrderedDict
 import os.path
+import re
 
 from django.conf import settings
 from django.db import connections
+from django.db.models import F
+from django.db.models.expressions import Combinable
 
 from ..exceptions import ImproperlyConfigured
 from ..types import DateTime, Date
@@ -121,7 +124,7 @@ class Configurator(object):
         """
         Maps an ``Index`` into a Sphinx source configuration.
         """
-        source_attrs = {}
+        source_attrs = OrderedDict()
         source_attrs.update(self.source_params)
         source_attrs.update(getattr(index.Meta, 'source_params', {}))
 
@@ -181,44 +184,67 @@ class Configurator(object):
     @staticmethod
     def _build_query(index, query, vendor):
         """
-        Returns a SQL query built according to the fields selected
+        Returns a SQL query built according to the fields we want to index.
         """
-        def qn(value):
-            if vendor == 'mysql':
-                return '`%s`' % value
-            else:
-                return '"%s"' % value
+        def special_annotate(query, dict_values):
+            """
+            This is a copy of normal Django annotate but 1. does not check for name
+            collisions and 2. does not add GROUP_BY to the query.
 
-        # Prepare the query Sphinx will use: select only the fields we use.
-        # Because fields in Meta are ordered as Django fields, this will
-        # map them correctly
-        select = OrderedDict(id='id')
+            GROUP BY is not required since we are building a SELECT expression.
+            Name collision is avoided so our indexes can have the same names as
+            the Model.
+            """
+            obj = query._clone()
+
+            # this line de-activates GROUP BY so we remember what magic we did it.
+            # obj._setup_aggregate_query(list(dict_values.items()))
+
+            # Add the aggregates to the query
+            for (alias, aggregate_expr) in dict_values.items():
+                obj.query.add_aggregate(aggregate_expr, query.model, alias,
+                                        is_summary=False)
+
+            return obj
+
+        annotation = OrderedDict()
         for field in index.Meta.fields:
-            column_name = qn(index.get_model_field(field.model_attr))
-            alias = qn(field.name)
-            sql = "%s"
-            if vendor == 'mysql':
-                if field.type() in (DateTime, Date):
-                    # for dates, we need the timestamp.
-                    # To ensure we get the correct timestamp
-                    # (i.e. same as Django uses),
-                    # in mysql we convert it to UTC.
-                    sql = "UNIX_TIMESTAMP(CONVERT_TZ(" \
-                          "%s, " \
-                          "'+00:00', " \
-                          "@@session.time_zone))"
-            if vendor == 'pgsql':
-                if field.type() is DateTime:
-                    sql = "EXTRACT(EPOCH FROM %s AT TIME ZONE '%s')" % \
-                          ('%s', settings.TIME_ZONE)
-                elif field.type() is Date:
-                    sql = "EXTRACT(EPOCH FROM %s)"
-            select["%s" % alias] = sql % column_name
 
-        query = query.only('id').extra(select=select)
+            if isinstance(field.model_attr, str):
+                annotation[field.name] = F(field.model_attr)
+            elif isinstance(field.model_attr, Combinable):
+                annotation[field.name] = field.model_attr
+            else:
+                raise ImproperlyConfigured(
+                    'Field "%s" model_attr must be either '
+                    'a string or a F expression. It is a "%s".' %
+                    (field.name, type(field.model_attr)))
 
-        # transform into SQL
-        return str(query.query)
+        # this is very hacky approach, but until we find something better,
+        # we have to live with it.
+        query = special_annotate(query.only('id'), annotation)
+        sql = str(query.query)
+
+        for field in index.Meta.fields:
+            alias = '"%s"' % field.name
+            if field.type() in (DateTime, Date):
+                expression = '%s'
+                if vendor == 'mysql':
+                    expression = "UNIX_TIMESTAMP(CONVERT_TZ(" \
+                                 "%s, " \
+                                 "'+00:00', " \
+                                 "@@session.time_zone))"
+                elif vendor == 'pgsql':
+                    if field.type() is DateTime:
+                        expression = "EXTRACT(EPOCH FROM %s AT TIME ZONE '%s')" % \
+                                     ('%s', settings.TIME_ZONE)
+                    elif field.type() is Date:
+                        expression = "EXTRACT(EPOCH FROM %s)"
+
+                sql = re.sub('([^\s]*) AS %s' % alias,
+                             lambda m: '%s AS %s' % (expression % m.group(1),
+                                                     alias), sql)
+        return sql
 
     def _conf_index_from_index(self, index, source_name):
         """

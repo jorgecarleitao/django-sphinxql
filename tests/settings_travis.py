@@ -19,7 +19,8 @@ else:
             },
         }
 
-INSTALLED_APPS = ('tests.query', 'tests.queryset', 'tests.indexing')
+INSTALLED_APPS = ('tests.query', 'tests.queryset', 'tests.indexing',
+                  'tests.foreign_relationships')
 
 SECRET_KEY = "django_tests_secret_key"
 

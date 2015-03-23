@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from .configuration import indexes_configurator
 from .exceptions import ImproperlyConfigured
 from .fields import Field
@@ -5,6 +6,12 @@ from .manager import Manager
 
 
 class MetaIndex(type):
+
+    # Ensures the fields are ordered when first created.
+    @classmethod
+    def __prepare__(mcs, name, bases):
+        return OrderedDict()
+
     def __new__(mcs, name, bases, attrs):
         # exclude ``Index`` itself
         parents = [b for b in bases if isinstance(b, MetaIndex)]
@@ -20,15 +27,10 @@ class MetaIndex(type):
                                                                       model=meta.model))
 
         # create new class
-        new_class = super(MetaIndex, mcs).__new__(mcs, name, bases, attrs)
+        new_class = super(MetaIndex, mcs).__new__(mcs, name, bases, dict(attrs))
         meta = new_class.Meta
 
-        # create a dictionary of *model* fields.
-        model_fields = {}
-        for model_field in model_meta.local_fields:
-            model_fields[model_field.name] = model_field
-
-        ### populate Meta with fields
+        # populate Meta with fields
         meta.fields = []
         for field_name in attrs:
             # ignore non-fields
@@ -39,24 +41,6 @@ class MetaIndex(type):
             # set field name and add it to meta
             field._value = field_name
             meta.fields.append(field)
-
-            # set a creation_counter and a model_field_name
-            # to later use
-            if field.model_attr in model_fields:
-                field.creation_counter = model_fields[field.model_attr].creation_counter
-            else:
-                raise ImproperlyConfigured(
-                    '"{model_field}" model field in "{index_name}.{field_name}"'
-                    ' not found. Available model fields: {model_fields}'
-                    .format(model_field=field.model_attr,
-                            field_name=field.name,
-                            index_name=name,
-                            model_fields=list(model_fields.keys())))
-
-        # order fields by creation_counter so they have same order
-        # of Django fields. This is required to ensure
-        # the query produced by Meta.query is consistent.
-        meta.fields.sort(key=lambda x: x.creation_counter)
 
         # register the field in our index configurator
         # so it is indexed by Sphinx.

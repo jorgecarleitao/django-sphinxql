@@ -111,10 +111,11 @@ Django-SphinxQL uses fields:
         my_indexed_text = FieldType('text')  # Index.Meta.model contains `text =
         ...`
 
-    Currently it is not possible to use Django lookups on fields; we expect
-    it to be possible in Django 1.8.
+    You can use both Django's F expressions or lookup expressions to index
+    related fields or concatenate two fields. For instance,
+    `TextField('article__text')`.
 
-    Django-SphinxQL maps a field to a `search field`_ or a `attribute`_ of Sphinx:
+    Fields are then mapped to a `search field`_ or a `attribute`_ of Sphinx:
 
     * attributes can be used to filter and order the results (
       :meth:`~sphinxql.query.SearchQuerySet.search_filter` and

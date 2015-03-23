@@ -1,31 +1,13 @@
-from unittest import TestCase
-
 from django.utils.timezone import now
 
 from sphinxql.core.base import DateTime, Date, Count, All
-from sphinxql.exceptions import ImproperlyConfigured
 from sphinxql.query import Query
 from sphinxql.sql import Match
-from sphinxql.types import String
-from sphinxql import indexes
-from sphinxql import fields
 
 from .indexes import DocumentIndex
 from .models import Document
 
-
 from tests import SphinxQLTestCase
-
-
-class ConfigurationTestCase(TestCase):
-
-    def test_wrong_attribute(self):
-        with self.assertRaises(ImproperlyConfigured):
-            class Index(indexes.Index):
-                wrong_attr = fields.Text(model_attr='summaryERROR')
-
-                class Meta:
-                    model = Document
 
 
 class IndexTestCase(SphinxQLTestCase):

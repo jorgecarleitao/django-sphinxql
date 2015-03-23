@@ -1,15 +1,15 @@
 from setuptools import setup, find_packages
 
-setup(name='Django-SphinxQL',
-      version='0.0.1',
+setup(name='django-sphinxql',
+      version='0.1',
       description='Sphinx search on Django',
       long_description=open('README.md').read(),
       author='Jorge C. Leitão',
       author_email='jorgecarleitao@gmail.com',
       packages=find_packages(),
-      install_requires=["Django >= 1.4"],
+      install_requires=["Django >= 1.8rc1"],
       classifiers=[
-          'Development Status :: 2 - Pre-Alpha',
+          'Development Status :: 3 - Alpha',
           'Environment :: Web Environment',
           'Framework :: Django',
           'Intended Audience :: Developers',

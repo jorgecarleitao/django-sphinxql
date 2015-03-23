@@ -24,7 +24,7 @@ All tests are in the directory `tests`. To run them, use:
 Django-SphinxQL requires:
 - Python 3
 - mysql or postgres
-- latest Django
+- latest Django (>=1.8)
 - latest Sphinx
 
 Our testing matrix uses the latest Django, Sphinx 2.2.6, with two builds, mysql
@@ -82,6 +82,18 @@ your app with:
         class Meta:
             model = models.Document
 
+`model_attr` can be either a string with lookups or an F expression.
+E.g. `type_name = fields.Text(model_attr='type__name')` will index the name of
+the ForeignKey `type` of your model, while 
+
+    type_name = fields.Text(model_attr=Concat('type__name', Value("' '"),
+                                              'my_text',
+                                              output_field=CharField()))
+
+indexes the concatenation of two fields. Check [Django example](https://docs.djangoproject.com/en/dev/ref/models/database-functions/#concat)
+for more on this. In principle the index fields accept any Django expression
+Django annotate accepts.
+
 To index your indexes, run:
 
     python manage.py index_sphinx
@@ -125,7 +137,6 @@ Known limitations
 -----------------
 
 * Only supports ``mysql`` and ``postgres`` backends (constraint on Sphinx engine)
-* Does not allow to index data from lookups
 * Null values are considered empty strings or 0 (constraint on Sphinx engine)
 * Only supports dates and times since 1970 (constraint on Sphinx engine)
 * Most Sphinx functionality *is not* implemented, notably real time indexes.
