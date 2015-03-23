@@ -18,14 +18,13 @@ Specifically, this API allows you to:
 
 .. warning::
 
-    This app is under development and is still pre-alpha.
+    This app is under development and is in alpha stage.
 
-.. _`publicos.pt`: http://publicos.pt
+.. _`publicos.pt`: https://github.com/jorgecarleitao/public-contracts
 
 .. note::
 
-    Yet, it is tested and is being used on production by its maintainer at
-    `publicos.pt`_.
+    Yet, it is tested and is being used in production at `publicos.pt`_.
 
 .. toctree::
    :maxdepth: 2
@@ -138,7 +137,7 @@ Known limitations
 * Null values are considered empty strings or 0 (constraint on Sphinx engine)
 * Only supports dates and times since 1970 (constraint on Sphinx engine)
 * Most Sphinx functionalities are not implemented, most notably real time indexes.
-* **Only supports Python 3 yet**
+* **Only supports Python 3**
 
 .. note::
 

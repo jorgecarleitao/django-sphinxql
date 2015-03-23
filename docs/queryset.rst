@@ -4,7 +4,7 @@ Querying with Sphinx
 .. currentmodule:: sphinxql.query
 
 This document presents the API of the Django-SphinxQL queryset, the high-level
-API for interacting with Sphinx from Django.
+interface for interacting with Sphinx from Django.
 
 SearchQuerySet
 --------------
@@ -38,7 +38,7 @@ SearchQuerySet
 
     .. attribute:: search_mode
 
-        Defaults to ``False``, and defines whether Sphinx should be used by the
+        Defaults to ``False``. Defines whether Sphinx should be used by the
         :class:`SearchQuerySet` prior to Django database hit. Automatically
         set to ``True`` when :meth:`search` is used.
 
@@ -109,8 +109,6 @@ SearchQuerySet
         * Phrase match: ``'"<...>"'`` (e.g. ``'"hello world"'``)
         * Before match: ``'<<'`` (e.g. ``'hello << world'``)
 
-        All arguments passed to this function are SQL-escaped.
-
     .. method:: search_order_by(*expressions)
 
         Adds ``ORDER BY`` clauses to Sphinx query. For example::
@@ -119,7 +117,7 @@ SearchQuerySet
 
         will order first by the search relevance (:meth:`search` added it)
         and then by ``number`` in decreasing order. Use ``search_order_by()``
-        to clear the ordering (default order is by ``id``, like Django).
+        to clear the ordering (default order is by ``id``).
 
         There are two built-in columns, ``'@id'`` and ``'@relevance'``,
         that are used to order by Django ``id`` and by relevance of the results,
@@ -173,7 +171,7 @@ QuerySet
     to present results of a search that don't need any extra data from Django.
 
     The interface of this QuerySet is equivalent to Django QuerySet: it
-    is lazy and allows chaining. However, the current methods implemented are
+    is lazy and allows chaining. However, the current implemented methods are
     limited:
 
     .. method:: search(*extended_queries)

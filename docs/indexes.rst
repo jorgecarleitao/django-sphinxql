@@ -13,7 +13,7 @@ This means that Django-SphinxQL must know:
 2. how you want to index it (e.g. type)
 
 In the same spirit of Django, Django-SphinxQL defines an ORM for you to answer
-those questions. It works like this::
+those questions. For example::
 
     # indexes.py
     from sphinxql import fields, indexes
@@ -27,7 +27,7 @@ those questions. It works like this::
         class Meta:
             model = models.Post  # the model we are indexing
 
-The ``fields`` and the ``Meta.model`` identify "what"; the specific field type,
+The ``fields`` and the ``Meta.model`` identify the "what"; the specific field type,
 e.g. ``Text``, identifies the "how". In the following sections the complete API
 is presented.
 
@@ -75,7 +75,7 @@ Index
             Optional. Defining it automatically enables ranged-queries_.
             This integer defines the number of rows per query retrieved during
             indexing. It increases the number of queries during indexing, but
-            reduces the amount of data transfer for each query.
+            reduces the amount of data transfer on each query.
 
         In case you want to override Sphinx settings only to this particular
         index, you can also define the following class attributes:
@@ -121,8 +121,7 @@ Django-SphinxQL uses fields:
       :meth:`~sphinxql.query.SearchQuerySet.search_order_by`).
 
     * search fields are indexed for text search, and thus can be used for textual
-      searches with :meth:`~sphinxql.query.SearchQuerySet.search`. Sphinx **does**
-      **not** store the original content of search fields.
+      searches with :meth:`~sphinxql.query.SearchQuerySet.search`.
 
     The following fields are currently implemented in Django-SphinxQL:
 

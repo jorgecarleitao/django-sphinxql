@@ -12,8 +12,7 @@ Configure Sphinx
 
 Running Sphinx requires a configuration file ``sphinx.conf``, normally
 written by the user, that contains an arbitrary number of ``sources`` and
-``indexes``, one ``indexer`` and one ``searchd`` that contains all information
-regarding Sphinx.
+``indexes``, one ``indexer`` and one ``searchd``.
 
 Django-SphinxQL provides an API to construct the ``sphinx.conf`` in Django:
 once you run Django with an :class:`~sphinxql.indexes.Index`,
@@ -25,7 +24,7 @@ a database when you run ``migrate``.
     The ``sphinx.conf`` is modified by Django-SphinxQL from your code. It
     doesn't need to be added to the version control system.
 
-Equivalently to Django,  the ``sources`` and ``indexes`` of ``sphinx.conf`` are
+Equivalently to Django, the ``sources`` and ``indexes`` of ``sphinx.conf`` are
 configured by an ORM (see :doc:`indexes`); ``indexer`` and ``searchd`` are
 configured by settings in Django settings.
 
@@ -43,9 +42,9 @@ For example::
 
 .. note::
 
-    a) The paths must exist; b) ``'path'`` will have *some*
-       files inside (Sphinx database). c) 'sphinx_path' will contain 3 files:
-       ``pid file``, ``searchd.log``, and ``sphinx.conf``.
+    a) The paths must exist; b) ``'path'`` will contain the Sphinx database.
+    c) 'sphinx_path' will contain 3 files:
+        ``pid file``, ``searchd.log``, and ``sphinx.conf``.
 
 Like Django, Django-SphinxQL already provides a (conservative) default
 configuration for Sphinx (e.g. it automatically sets Sphinx to assume unicode).
@@ -55,9 +54,6 @@ Default settings
 
 Django-SphinxQL uses the following default settings::
 
-    'source_params': {
-        'sql_query_pre': 'SET CHARACTER_SET_RESULTS=utf8'
-    }
     'index_params': {
         'type': 'plain',
         'charset_type': 'utf-8'
@@ -82,12 +78,12 @@ necessary, in the following order:
    <sphinxql.indexes.Index.Meta>` to that specific index, possibly overriding
    settings in 2.
 
-To project-wise settings, use:
+The project-wise settings use:
 
-* ``INDEXES['searchd_params']``
-* ``INDEXES['indexer_params']``
-* ``INDEXES['index_params']``
-* ``INDEXES['source_params']``
+* ``settings.INDEXES['searchd_params']``
+* ``settings.INDEXES['indexer_params']``
+* ``settings.INDEXES['index_params']``
+* ``settings.INDEXES['source_params']``
 
 Each of them must be a dictionary that maps a Sphinx option (a Python string,
 e.g. ``'charset_table'``) to a string or a tuple, depending whether the Sphinx
@@ -104,8 +100,7 @@ For example::
             }
             # additionally to default, turns off query cache (see Sphinx docs)
             'source_params': {
-                'sql_query_pre': ('SET CHARACTER_SET_RESULTS=utf8',
-                                  'SET SESSION query_cache_type=OFF')
+                'sql_query_pre': ('SET SESSION query_cache_type=OFF',)
             }
             ...
     }
@@ -119,8 +114,7 @@ index by defining :attr:`~sphinxql.indexes.Index.Meta.source_params` and
 .. note::
 
     The options must be valid Sphinx options as defined in `Sphinx documentation`_.
-    Django-SphinxQL warns you (violently) if some option is not correct or is
-    not valid.
+    Django-SphinxQL warns you if some option is not correct or is not valid.
 
 ``'index_params'`` and ``'source_params'`` are used on every index configured;
 ``'indexer_params'`` and ``'searchd_params'`` are used in the ``indexer`` and
@@ -183,6 +177,7 @@ Index configurator
 
     * :class:`~sphinxql.indexes.Index.Meta.model`: the Django model the index is respective to.
     * :class:`~sphinxql.indexes.Index.Meta.query`: the Django query the index is populated from.
+    * :class:`~sphinxql.indexes.Index.Meta.range_step`: the step for ranged queries (see Sphinx docs)
 
 source configuration
 ^^^^^^^^^^^^^^^^^^^^

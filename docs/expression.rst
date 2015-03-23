@@ -3,7 +3,7 @@ SphinxQL Queries
 
 .. currentmodule:: sphinxql
 
-This section of the documentation explains how to construct these expressions.
+This section of the documentation explains how to construct expressions.
 To use queries with Django, see :doc:`queryset`.
 
 Sphinx uses a dialect of SQL, SphinxQL, to perform operations on its database.

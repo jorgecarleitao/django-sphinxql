@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/jorgecarleitao/django-sphinxql.svg)](https://travis-ci.org/jorgecarleitao/django-sphinxql)
+[![Build Status](https://travis-ci.org/jorgecarleitao/django-sphinxql.svg?branch=master)](https://travis-ci.org/jorgecarleitao/django-sphinxql)
 
 Django-SphinxQL implements [Sphinx search](sphinxsearch.com) for
 [Django](djangoproject.com), thanks for checking it out.
@@ -21,9 +21,9 @@ All tests are in the directory `tests`. To run them, use:
 
     PYTHONPATH=..:$PYTHONPATH django-admin.py test --settings=tests.settings_test tests
 
-Django-SphinxQL supports:
+Django-SphinxQL requires:
 - Python 3
-- mysql and postgres
+- mysql or postgres
 - latest Django
 - latest Sphinx
 
@@ -68,7 +68,8 @@ Index your models
 -----------------
 
 Assume you have a model ``Document`` with a ``summary``, a ``text`` and a
-``number``. To index it, first create a file ``indexes.py`` with:
+``number`` that you want to index. To index it, create a file ``indexes.py`` in 
+your app with:
 
     from sphinxql import indexes, fields
     from myapp import models
@@ -81,7 +82,7 @@ Assume you have a model ``Document`` with a ``summary``, a ``text`` and a
         class Meta:
             model = models.Document
 
-Then run:
+To index your indexes, run:
 
     python manage.py index_sphinx
 
@@ -99,9 +100,9 @@ Search your indexes
 
 Django-SphinxQL defines a subclass of Django ``QuerySet``'s, that interfaces with
 all Sphinx-related operations. ``SearchQuerySet`` *only adds functionality*: if you
-don't use it, it is a ``QuerySet``.
+don't use Sphinx-related, it behaves as a ``QuerySet``.
 
-Sphinx has a dedicated syntax for text search and Django-SphinxQL accepts it:
+Sphinx has a dedicated syntax for text search that Django-SphinxQL also accepts:
 
     >>> q = SearchQuerySet(DocumentIndex).search('@my_text toys for babies')
 
@@ -112,13 +113,13 @@ Once you perform it, it does the following:
 1. hit Sphinx database and convert results to ``DocumentIndex`` instances;
 2. hit Django database to retrieve the respective ``Document`` instances;
 3. annotate ``Document`` instances with the respective ``DocumentIndex``
-   instances (attribute ``search_result``)
-4. returns ``Document`` instances.
+   instances (in attribute ``search_result``)
+4. returns the ``Document`` instances.
 
 Step 2. is done using ``.filter(pk__in=[...])``. The results are ordered by relevance
 because there was no specific call of ``order_by``: if you set any ordering
-in Django Query, it uses Django ordering (i.e. it overrides default ordering but
-not explicit ordering). See docs for detailed information.
+in Django Query, it uses Django ordering (i.e. it overrides the default ordering
+but not an explicit ordering). See docs for detailed information.
 
 Known limitations
 -----------------
@@ -127,4 +128,4 @@ Known limitations
 * Does not allow to index data from lookups
 * Null values are considered empty strings or 0 (constraint on Sphinx engine)
 * Only supports dates and times since 1970 (constraint on Sphinx engine)
-* Most Sphinx functionalities *are not* implemented, most notabily real time indexes.
+* Most Sphinx functionality *is not* implemented, notably real time indexes.
