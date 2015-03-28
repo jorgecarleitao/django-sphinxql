@@ -17,7 +17,11 @@ class SphinxQL(AppConfig):
         it and doesn't index the models.
         """
         for app in apps.get_app_configs():
-            __import__(app.module.__package__ + '.indexes')
+            try:
+                __import__(app.module.__package__ + '.indexes')
+            except ImportError:
+                # ignore apps without indexes.
+                pass
 
         try:
             indexes_configurator.configure()
