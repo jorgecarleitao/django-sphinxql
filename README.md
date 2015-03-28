@@ -53,7 +53,7 @@ To install Django-SphinxQL, use:
 Minimal configuration
 ---------------------
 
-1. add `sphinxql` to the ``INSTALLED_APPS`` (this only installs management commands);
+1. add `sphinxql` to the ``INSTALLED_APPS`` (no models are installed);
 2. add ``INDEXES`` to settings:
 
         INDEXES = {
@@ -82,17 +82,16 @@ your app with:
         class Meta:
             model = models.Document
 
-`model_attr` can be either a string with lookups or an F expression.
+`model_attr` can be either a string with lookups or an [F expression](https://docs.djangoproject.com/en/1.8/topics/db/queries/#using-f-expressions-in-filters).
 E.g. `type_name = fields.Text(model_attr='type__name')` will index the name of
 the ForeignKey `type` of your model, while 
 
-    type_name = fields.Text(model_attr=Concat('type__name', Value("' '"),
+    type_name = fields.Text(model_attr=Concat('type__name', Value(' '),
                                               'my_text',
                                               output_field=CharField()))
 
-indexes the concatenation of two fields. Check [Django example](https://docs.djangoproject.com/en/dev/ref/models/database-functions/#concat)
-for more on this. In principle the index fields accept any Django expression
-Django annotate accepts.
+indexes the concatenation of two fields (see [Django documentation](https://docs.djangoproject.com/en/dev/ref/models/database-functions/#concat) why).
+In principle the index fields accept any Django expression Django annotate accepts.
 
 To index your indexes, run:
 

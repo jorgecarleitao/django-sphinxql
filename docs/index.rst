@@ -130,10 +130,7 @@ not explicit ordering). See :doc:`queryset` for more info.
 Known limitations
 -----------------
 
-.. _14030: https://code.djangoproject.com/ticket/14030
-
 * Only supports ``mysql`` and ``postgres`` backends (constraint on Sphinx engine)
-* Does not allow to index data from lookups (constraint on Django ticket 14030_)
 * Null values are considered empty strings or 0 (constraint on Sphinx engine)
 * Only supports dates and times since 1970 (constraint on Sphinx engine)
 * Most Sphinx functionalities are not implemented, most notably real time indexes.
@@ -141,17 +138,8 @@ Known limitations
 
 .. note::
 
-    Django-SphinxQL *is not* a plug-and-play app for search: *it is an API*
-    that allows you to easily configure and use Sphinx in Django.
     You should check first if Django-Haystack suits your needs.
 
-    The main motivation for this API is that I needed to have a search on
-    "Open Data", which typically are very static datasets. Sphinx uses this
-    assumption on its standard "plain" index, which this app also uses.
-
-    I didn't created a backend for Django-Haystack because I already maintain
-    the backend for Xapian and I didn't wanted to be stuck to the particular
-    API of Django-Haystack.
-
-    You can think of Django-SphinxQL as an **alternative** to Django's ``__search``
-    lookup.
+    Django-SphinxQL is useful when you can index your data on a time-scale
+    different from "real time". It should be faster in indexing, and it should
+    have a lower memory footprint.

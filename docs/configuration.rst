@@ -72,11 +72,10 @@ Django-SphinxQL applies settings in cascade, overriding previous settings if
 necessary, in the following order:
 
 1. first, it uses Django-SphinxQL's default settings
-2. them, it applies settings of ``settings.INDEXES``, possibly overriding some
-   settings in 1.
+2. them, it applies project-wise settings in ``settings.INDEXES``, possibly
+   overriding settings defined in 1.
 3. finally, it applies the settings defined in the :class:`Index.Meta
-   <sphinxql.indexes.Index.Meta>` to that specific index, possibly overriding
-   settings in 2.
+   <sphinxql.indexes.Index.Meta>`, possibly overriding settings in 2.
 
 The project-wise settings use:
 

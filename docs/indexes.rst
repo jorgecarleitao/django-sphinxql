@@ -44,8 +44,8 @@ Index
     <fields.Field>`, and it constructs an Sphinx index out of those fields.
 
     Formally, when an index is declared, it is automatically registered in the
-    :class:`~sphinxql.configuration.configurators.IndexConfigurator` to
-    Django-SphinxQL configure Sphinx.
+    :class:`~sphinxql.configuration.configurators.IndexConfigurator` so
+    Django-SphinxQL can configure Sphinx.
 
     An index is always composed by two components: a set of :class:`fields
     <fields.Field>` that you declare as class attributes and a class ``Meta``:
@@ -97,8 +97,8 @@ Index
 Field
 ~~~~~
 
-To identify a particular attribute of a Django model to be indexed,
-Django-SphinxQL uses fields:
+Django-SphinxQL uses fields to identify which attributes from a Django model
+are indexed:
 
 .. _attribute: http://sphinxsearch.com/docs/current.html#attributes
 .. _search field: http://sphinxsearch.com/docs/current.html#fields
@@ -115,9 +115,9 @@ Django-SphinxQL uses fields:
     related fields or concatenate two fields. For instance,
     `TextField('article__text')`.
 
-    Fields are then mapped to a `search field`_ or a `attribute`_ of Sphinx:
+    Fields are then mapped to a `search field`_ or an `attribute`_ of Sphinx:
 
-    * attributes can be used to filter and order the results (
+    * attributes can be used to filter and order the results (see
       :meth:`~sphinxql.query.SearchQuerySet.search_filter` and
       :meth:`~sphinxql.query.SearchQuerySet.search_order_by`).
 
@@ -137,4 +137,4 @@ Django-SphinxQL uses fields:
     .. _unix timestamp: https://en.wikipedia.org/wiki/Unix_time
 
     Note that Sphinx ``sql_attr_timestamp`` is stored as a `unix timestamp`_,
-    so Django-SphinxQL only supports dates/times since to 1970.
+    so Django-SphinxQL only supports dates/times since 1970.
