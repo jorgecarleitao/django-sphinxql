@@ -36,7 +36,7 @@ class SimpleTestCase(SphinxQLTestCase):
 
     def tearDown(self):
         Document.objects.all().delete()
-        super(SphinxQLTestCase, self).tearDown()
+        super(SimpleTestCase, self).tearDown()
 
 
 class SimpleQuerySetTestCase(SimpleTestCase):
