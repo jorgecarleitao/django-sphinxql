@@ -7,7 +7,7 @@ setup(name='django-sphinxql',
       author='Jorge C. Leitão',
       author_email='jorgecarleitao@gmail.com',
       packages=find_packages(),
-      install_requires=["Django >= 1.8rc1"],
+      install_requires=['Django >= 1.8rc1', 'pymysql'],
       classifiers=[
           'Development Status :: 3 - Alpha',
           'Environment :: Web Environment',
