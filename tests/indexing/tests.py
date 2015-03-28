@@ -18,7 +18,7 @@ class IndexTestCase(SphinxQLTestCase):
         self.document = Document.objects.create(
             summary="This is a summary", text="What a nice text",
             date=now().date(),
-            added_time=now(),
+            added_time=now().replace(microsecond=0),
             number=2, float=2.2, bool=True,
             unicode='câmara',
             slash='/summary')
@@ -49,7 +49,7 @@ class IndexTestCase(SphinxQLTestCase):
         result = list(self.query)[0][4]
 
         result = DateTime.to_python(result)
-        self.assertEqual(result, self.document.added_time.replace(microsecond=0))
+        self.assertEqual(result, self.document.added_time)
 
     def test_number(self):
         result = list(self.query)[0][5]
