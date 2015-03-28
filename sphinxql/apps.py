@@ -13,7 +13,8 @@ class SphinxQL(AppConfig):
 
     def ready(self):
         """
-        Loads all indexes and
+        Loads all indexes and configures Sphinx. When db isn't ready, it logs
+        it and doesn't index the models.
         """
         for app in apps.get_app_configs():
             __import__(app.module.__package__ + '.indexes')
@@ -22,5 +23,5 @@ class SphinxQL(AppConfig):
             indexes_configurator.configure()
             indexes_configurator.output()
         except InternalError:
-            logger.warning('Sphinx was not configurated: no database found.')
+            logger.warning('Sphinx was not configured: no database found.')
             pass

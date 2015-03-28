@@ -19,8 +19,8 @@ else:
             },
         }
 
-INSTALLED_APPS = ('tests.query', 'tests.queryset', 'tests.indexing',
-                  'tests.foreign_relationships')
+INSTALLED_APPS = ('sphinxql', 'tests.query', 'tests.queryset',
+                  'tests.indexing', 'tests.foreign_relationships')
 
 SECRET_KEY = "django_tests_secret_key"
 

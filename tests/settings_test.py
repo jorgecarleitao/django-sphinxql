@@ -19,7 +19,7 @@ DATABASES = {
         },
 }
 
-INSTALLED_APPS = ('sphinxql.apps.SphinxQL', 'tests.query', 'tests.queryset',
+INSTALLED_APPS = ('sphinxql', 'tests.query', 'tests.queryset',
                   'tests.indexing', 'tests.foreign_relationships')
 
 SECRET_KEY = "django_tests_secret_key"
