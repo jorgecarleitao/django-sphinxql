@@ -3,7 +3,7 @@ import logging
 from django.apps import AppConfig, apps
 
 from sphinxql.configuration import indexes_configurator
-from django.db.utils import InternalError
+from django.db.utils import InternalError, OperationalError
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +22,6 @@ class SphinxQL(AppConfig):
         try:
             indexes_configurator.configure()
             indexes_configurator.output()
-        except InternalError:
+        except (InternalError, OperationalError):
             logger.warning('Sphinx was not configured: no database found.')
             pass
