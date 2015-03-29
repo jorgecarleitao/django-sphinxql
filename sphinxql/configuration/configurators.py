@@ -280,6 +280,7 @@ class Configurator(object):
         searchd_params.update(DEFAULT_SEARCHD_PARAMS)
         searchd_params['pid_file'] = os.path.join(settings.INDEXES.get('sphinx_path'), 'searchd.pid')
         searchd_params.update(settings.INDEXES.get('searchd_params', {}))
+
         return SearchdConfiguration(searchd_params)
 
     @staticmethod
@@ -291,9 +292,9 @@ class Configurator(object):
 
     def configure(self):
         """
-        Configures the existing indexes.
+        Configures the registered indexes.
 
-        This method must be called
+        This method must be called before `output`.
         """
         if not hasattr(settings, 'INDEXES'):
             raise ImproperlyConfigured('Django-SphinxQL requires '
@@ -322,18 +323,16 @@ class Configurator(object):
         """
         assert self.indexes
 
-        string = "# WARNING! This file was automatically generated: do not " \
-                 "modify it.\n\n"
-
+        string_blocks = ["# WARNING! This file was automatically generated: do not "
+                         "modify it.\n"]
         # output all source and indexes
         for i in range(len(self.indexes)):
-            string += self.sources_confs[i].format_output()
-            string += '\n'
-            string += self.indexes_confs[i].format_output()
+            string_blocks.append(self.sources_confs[i].format_output())
+            string_blocks.append(self.indexes_confs[i].format_output())
 
         # output indexer and searchd
-        string += self.indexer_conf.format_output()
-        string += self.searchd_conf.format_output()
+        string_blocks.append(self.indexer_conf.format_output())
+        string_blocks.append(self.searchd_conf.format_output())
 
         with open(self.sphinx_file, 'w') as conf_file:
-            conf_file.write(string)
+            conf_file.write('\n'.join(string_blocks))
