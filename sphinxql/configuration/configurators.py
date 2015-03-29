@@ -92,74 +92,74 @@ def _generate_sql(query, vendor):
 
 
 def _build_query(index, query, vendor):
+    """
+    Returns a SQL query built according to the fields we want to index.
+    """
+    assert(vendor in ('mysql', 'pgsql'))
+
+    def special_annotate(query, dict_values):
         """
-        Returns a SQL query built according to the fields we want to index.
+        This is a copy of normal Django annotate but 1. does not check for name
+        collisions and 2. does not add GROUP_BY to the query.
+
+        GROUP BY is not required since we are building a SELECT expression.
+        Name collision is avoided so our indexes can have the same names as
+        the Model.
         """
-        assert(vendor in ('mysql', 'pgsql'))
+        obj = query._clone()
 
-        def special_annotate(query, dict_values):
-            """
-            This is a copy of normal Django annotate but 1. does not check for name
-            collisions and 2. does not add GROUP_BY to the query.
+        # this line de-activates GROUP BY so we remember what magic we did it.
+        # obj._setup_aggregate_query(list(dict_values.items()))
 
-            GROUP BY is not required since we are building a SELECT expression.
-            Name collision is avoided so our indexes can have the same names as
-            the Model.
-            """
-            obj = query._clone()
+        # Add the aggregates to the query
+        for (alias, aggregate_expr) in dict_values.items():
+            obj.query.add_aggregate(aggregate_expr, query.model, alias,
+                                    is_summary=False)
 
-            # this line de-activates GROUP BY so we remember what magic we did it.
-            # obj._setup_aggregate_query(list(dict_values.items()))
+        return obj
 
-            # Add the aggregates to the query
-            for (alias, aggregate_expr) in dict_values.items():
-                obj.query.add_aggregate(aggregate_expr, query.model, alias,
-                                        is_summary=False)
+    annotation = OrderedDict()
+    for field in index.Meta.fields:
+        if isinstance(field.model_attr, str):
+            annotation[field.name] = F(field.model_attr)
+        elif isinstance(field.model_attr, Combinable):
+            annotation[field.name] = field.model_attr
+        else:
+            raise ImproperlyConfigured(
+                'Field "%s" model_attr must be either '
+                'a string or a F expression. It is a "%s".' %
+                (field.name, type(field.model_attr)))
 
-            return obj
+    # this is an hacky approach, but until we find something better,
+    # we have to live with it.
+    query = special_annotate(query.only('id'), annotation)
+    sql = _generate_sql(query, vendor)
 
-        annotation = OrderedDict()
-        for field in index.Meta.fields:
-            if isinstance(field.model_attr, str):
-                annotation[field.name] = F(field.model_attr)
-            elif isinstance(field.model_attr, Combinable):
-                annotation[field.name] = field.model_attr
-            else:
-                raise ImproperlyConfigured(
-                    'Field "%s" model_attr must be either '
-                    'a string or a F expression. It is a "%s".' %
-                    (field.name, type(field.model_attr)))
+    # it is in bytes; decode to utf-8
+    sql = sql.decode('utf-8')
 
-        # this is an hacky approach, but until we find something better,
-        # we have to live with it.
-        query = special_annotate(query.only('id'), annotation)
-        sql = _generate_sql(query, vendor)
+    for field in [f for f in index.Meta.fields
+                  if f.type() in (DateTime, Date)]:
+        alias = '`%s`' % field.name
+        expression = '%s'
+        if vendor == 'mysql':
+            expression = "UNIX_TIMESTAMP(CONVERT_TZ(" \
+                         "%s, " \
+                         "'+00:00', " \
+                         "@@session.time_zone))"
 
-        # it is in bytes; decode to utf-8
-        sql = sql.decode('utf-8')
+        elif vendor == 'pgsql':
+            alias = '"%s"' % field.name
+            if field.type() is DateTime:
+                expression = "EXTRACT(EPOCH FROM %s AT TIME ZONE '%s')" % \
+                             ('%s', settings.TIME_ZONE)
+            elif field.type() is Date:
+                expression = "EXTRACT(EPOCH FROM %s)"
 
-        for field in [f for f in index.Meta.fields
-                      if f.type() in (DateTime, Date)]:
-            alias = '`%s`' % field.name
-            expression = '%s'
-            if vendor == 'mysql':
-                expression = "UNIX_TIMESTAMP(CONVERT_TZ(" \
-                             "%s, " \
-                             "'+00:00', " \
-                             "@@session.time_zone))"
-
-            elif vendor == 'pgsql':
-                alias = '"%s"' % field.name
-                if field.type() is DateTime:
-                    expression = "EXTRACT(EPOCH FROM %s AT TIME ZONE '%s')" % \
-                                 ('%s', settings.TIME_ZONE)
-                elif field.type() is Date:
-                    expression = "EXTRACT(EPOCH FROM %s)"
-
-            sql = re.sub('([^\s]*) AS %s' % alias,
-                         lambda m: '%s AS %s' % (expression % m.group(1),
-                                                 alias), sql)
-        return sql
+        sql = re.sub('([^\s]*) AS %s' % alias,
+                     lambda m: '%s AS %s' % (expression % m.group(1),
+                                             alias), sql)
+    return sql
 
 
 class Configurator(object):
