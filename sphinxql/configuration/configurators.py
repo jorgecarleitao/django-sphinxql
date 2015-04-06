@@ -250,7 +250,8 @@ class Configurator(object):
                 'SELECT MIN(id),MAX(id) FROM %s' % index.Meta.model._meta.db_table)
             source_attrs = add_source_conf_param(
                 source_attrs, 'sql_range_step', range_step)
-            query = query.extra(where=['id>=$start AND id<=$end'])
+            query = query.extra(where=['{0}.id>=$start AND {0}.id<=$end'
+                                .format(index.Meta.model._meta.db_table)])
 
         ### add the query
         source_attrs = add_source_conf_param(

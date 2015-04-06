@@ -26,3 +26,13 @@ class DocumentIndex1(indexes.Index):
 
     class Meta:
         model = Document
+
+
+class DocumentIndex2(indexes.Index):
+    name = fields.Text(Concat(F('type__name'), Value(' '),
+                              output_field=CharField()))
+    text = fields.Text('text')
+
+    class Meta:
+        model = Document
+        range_step = 10000
