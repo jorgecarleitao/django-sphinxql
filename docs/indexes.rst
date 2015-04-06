@@ -23,6 +23,8 @@ those questions. For example::
         text = fields.Text('text')  # Post has the model field ``text``
         date = fields.Date('added_date')
         summary = fields.Text('summary')
+        # `Post` has a foreign key to a `Blog`, and blog has a name.
+        blog_name = fields.Text('blog__name')
 
         class Meta:
             model = models.Post  # the model we are indexing
@@ -41,11 +43,11 @@ Index
 
     :class:`~indexes.Index` is an ORM to Sphinx-index a Django Model. It works in
     a similar fashion to a Django model: you set up the :class:`fields
-    <fields.Field>`, and it constructs an Sphinx index out of those fields.
+    <fields.Field>`, and it constructs a Sphinx index out of those fields.
 
-    Formally, when an index is declared, it is automatically registered in the
+    Formally, when an index is declared, it is registered in the
     :class:`~sphinxql.configuration.configurators.IndexConfigurator` so
-    Django-SphinxQL can configure Sphinx.
+    Django-SphinxQL configures it in Sphinx.
 
     An index is always composed by two components: a set of :class:`fields
     <fields.Field>` that you declare as class attributes and a class ``Meta``:
@@ -66,7 +68,8 @@ Index
 
             Optional. The query Sphinx uses to index its data, e.g.
             ``query = models.Post.objects.filter(date__year__gt=2000)``. If not
-            set, Django-SphinxQL uses ``.objects.all()``.
+            set, Django-SphinxQL uses ``.objects.all()``. This is useful if you
+            want to construct indexes for specific sets of instances.
 
         .. _ranged-queries: http://sphinxsearch.com/docs/current.html#ranged-queries
 
@@ -106,7 +109,7 @@ are indexed:
 .. class:: fields.Field
 
     A field to be added to an :class:`~indexes.Index`. A field is always mapped
-    to a Django model field, set on its initialization::
+    to a Django queryset, set on its initialization::
 
         my_indexed_text = FieldType('text')  # Index.Meta.model contains `text =
         ...`
@@ -117,14 +120,15 @@ are indexed:
 
     Fields are then mapped to a `search field`_ or an `attribute`_ of Sphinx:
 
-    * attributes can be used to filter and order the results (see
+    * search fields are indexed for text search, and thus are used for
+      textual searches with :meth:`~sphinxql.query.SearchQuerySet.search`.
+
+    * attributes are used to filter and order the search results (see
       :meth:`~sphinxql.query.SearchQuerySet.search_filter` and
-      :meth:`~sphinxql.query.SearchQuerySet.search_order_by`).
+      :meth:`~sphinxql.query.SearchQuerySet.search_order_by`). They cannot be
+      used in textual search.
 
-    * search fields are indexed for text search, and thus can be used for textual
-      searches with :meth:`~sphinxql.query.SearchQuerySet.search`.
-
-    The following fields are currently implemented in Django-SphinxQL:
+    The following fields are implemented in Django-SphinxQL:
 
     * ``Text``: a search field (Sphinx equivalent ``sql_field_string``).
     * ``String``: (non-indexed) attribute for strings (``sql_attr_string``).

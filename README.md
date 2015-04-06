@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/jorgecarleitao/django-sphinxql.svg?branch=master)](https://travis-ci.org/jorgecarleitao/django-sphinxql)
 
-Django-SphinxQL implements [Sphinx search](sphinxsearch.com) for
-[Django](djangoproject.com), thanks for checking it out.
+Django-SphinxQL implements [Sphinx search](http://sphinxsearch.com) for
+[Django](https://www.djangoproject.com), thanks for checking it out.
 
 Django is a Web framework for building websites with relational databases;
 Sphinx is a search engine designed for relational databases.
@@ -13,30 +13,29 @@ Specifically, this API allows you to:
 
 1. Configure Sphinx with Python.
 2. Index Django models in Sphinx.
-3. Execute Sphinx queries (SphinxQL) and automatically have the results as Django models.
-
-All documentation is in the directory `docs` and [available online](http://django-sphinxql.readthedocs.org/en/latest/).
-
-All tests are in the directory `tests`. To run them, use:
-
-    PYTHONPATH=..:$PYTHONPATH django-admin.py test --settings=tests.settings_test tests
+3. Execute Sphinx queries (SphinxQL) using a Django-like expressions and have the 
+results as Django models.
 
 Django-SphinxQL requires:
 - Python 3
 - mysql or postgres
-- latest Django (>=1.8)
-- latest Sphinx
+- Django (>=1.8)
+- Sphinx
 
 Our testing matrix uses the latest Django, Sphinx 2.2.6, with two builds, mysql
 and postgres. For more details, you can check directory `tests` and `.travis.yml`.
+To run the tests locally, use:
 
-**This project is in alpha stage.**
+    PYTHONPATH=..:$PYTHONPATH django-admin.py test --settings=tests.settings_test tests
+
+The next sections present a minimal setup to use this package. The full documentation
+is available [here](http://django-sphinxql.readthedocs.org/en/latest/).
 
 Installation
 ------------
 
-Django-SphinxQL has no requirements besides Django and Sphinx.
-To install Sphinx, use:
+Django-SphinxQL has no requirements besides Django and Sphinx. To install Sphinx,
+use:
 
     export VERSION=2.2.6
     wget http://sphinxsearch.com/files/sphinx-$VERSION-release.tar.gz
@@ -53,7 +52,10 @@ To install Django-SphinxQL, use:
 Minimal configuration
 ---------------------
 
-1. add `sphinxql` to the ``INSTALLED_APPS`` (no models are installed);
+Django-SphinxQL requires a directory to store its database and be registered as
+installed app (it doesn't contain Django models):
+
+1. add `sphinxql` to the ``INSTALLED_APPS``;
 2. add ``INDEXES`` to settings:
 
         INDEXES = {
@@ -90,7 +92,7 @@ the ForeignKey `type` of your model, while
                                               'my_text',
                                               output_field=CharField()))
 
-indexes the concatenation of two fields (see [Django documentation](https://docs.djangoproject.com/en/dev/ref/models/database-functions/#concat) why).
+indexes the concatenation of two fields (see also [Django documentation](https://docs.djangoproject.com/en/dev/ref/models/database-functions/#concat)).
 In principle the index fields accept any Django expression Django annotate accepts.
 
 To index your indexes, run:
@@ -100,7 +102,7 @@ To index your indexes, run:
 At this moment you may notice that some files will be created in
 ``settings.INDEXES['path']``: Sphinx database is populated.
 
-Then, start Sphinx (only has to be started once):
+Then, start Sphinx daemon (only has to be started once):
 
     python manage.py start_sphinx
 
@@ -111,7 +113,7 @@ Search your indexes
 
 Django-SphinxQL defines a subclass of Django ``QuerySet``'s, that interfaces with
 all Sphinx-related operations. ``SearchQuerySet`` *only adds functionality*: if you
-don't use Sphinx-related, it behaves as a ``QuerySet``.
+don't use Sphinx-related, it is a ``QuerySet``.
 
 Sphinx has a dedicated syntax for text search that Django-SphinxQL also accepts:
 
@@ -135,7 +137,15 @@ but not an explicit ordering). See docs for detailed information.
 Known limitations
 -----------------
 
-* Only supports ``mysql`` and ``postgres`` backends (constraint on Sphinx engine)
 * Null values are considered empty strings or 0 (constraint on Sphinx engine)
 * Only supports dates and times since 1970 (constraint on Sphinx engine)
 * Most Sphinx functionality *is not* implemented, notably real time indexes.
+
+Final note
+----------
+
+You should check if [Django-Haystack](http://haystacksearch.org/) suits your needs.
+
+Django-SphinxQL is useful when you can index your data on a time-scale
+different from "real time". It should be much faster in indexing, and it should
+have lower memory requirements.
