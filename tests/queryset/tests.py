@@ -96,6 +96,9 @@ class SimpleQuerySetTestCase(SimpleTestCase):
         self.assertEqual(len(q), 0)
 
     def test_filter_string(self):
+        q = self.query.filter(C('summary') == 'This is a summary')
+        self.assertEqual(len(q), 1)
+
         q = self.query.filter(C('summary') == 'This')
         self.assertEqual(len(q), 0)
 
