@@ -53,10 +53,11 @@ class QuerySet(object):
             instance = self._index()
 
             setattr(instance, 'id', result[0])
-            i = 1
+            i = 1  # 1 is id
             for field in self._index.Meta.fields:
-                setattr(instance, field.name, field.type().to_python(result[i]))
-                i += 1
+                if field.is_attribute:
+                    setattr(instance, field.name, field.type().to_python(result[i]))
+                    i += 1
 
             yield instance
 
@@ -126,9 +127,10 @@ class QuerySet(object):
 
     def search(self, *extended_queries):
         clone = self.clone()
-        for extended_query in extended_queries:
-            assert isinstance(extended_query, str)
-            clone._match += ' %s' % extended_query
+        if clone._match == '':
+            clone._match = ' '.join(list(extended_queries))
+        else:
+            clone._match = ' '.join([clone._match] + list(extended_queries))
         return clone
 
     def order_by(self, *args):
@@ -173,7 +175,8 @@ class QuerySet(object):
 
         query.select.clear()
         for field in fields:
-            query.select.append(field)
+            if field.is_attribute:
+                query.select.append(field)
 
     @staticmethod
     def _add_condition(where, condition):

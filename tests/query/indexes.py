@@ -4,8 +4,8 @@ from .models import Author
 
 
 class AuthorIndex(indexes.Index):
-    first_name = fields.Text(model_attr='first_name')
-    last_name = fields.Text(model_attr='last_name')
+    first_name = fields.IndexedString(model_attr='first_name')
+    last_name = fields.IndexedString(model_attr='last_name')
     number = fields.Integer(model_attr='number')
     time = fields.DateTime(model_attr='time')
 
@@ -15,7 +15,7 @@ class AuthorIndex(indexes.Index):
 
 
 class Author2Index(indexes.Index):
-    first_name = fields.Text(model_attr='first_name')
+    first_name = fields.IndexedString(model_attr='first_name')
 
     class Meta:
         model = Author

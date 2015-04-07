@@ -130,13 +130,20 @@ are indexed:
 
     The following fields are implemented in Django-SphinxQL:
 
-    * ``Text``: a search field (Sphinx equivalent ``sql_field_string``).
+    * ``Text``: a search field (Sphinx equivalent of no field declaration).
+    * ``IndexedString``: attribute and search field (``sql_field_string``).
     * ``String``: (non-indexed) attribute for strings (``sql_attr_string``).
     * ``Date``: attribute for dates (``sql_attr_timestamp``).
     * ``DateTime``: attribute for datetimes (``sql_attr_timestamp``).
     * ``Float``: attribute for floats (``sql_attr_float``).
     * ``Bool``: attribute for booleans (``sql_attr_bool``).
     * ``Integer``: attribute for integers (``sql_attr_bigint``).
+
+    To simply index a Django field, use ``Text``. If you need an attribute to filter
+    or order your search results, use any of the attributes. Typically
+    ``IndexedString`` is only needed if you want to use Sphinx without hitting
+    Django's database (e.g. you redundantly store the data on Sphinx, query Sphinx
+    and use the results of it.
 
     .. _unix timestamp: https://en.wikipedia.org/wiki/Unix_time
 

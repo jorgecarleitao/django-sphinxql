@@ -4,8 +4,8 @@ from .models import Document
 
 
 class DocumentIndex(indexes.Index):
-    my_summary = fields.Text(model_attr='summary')
-    my_text = fields.Text(model_attr='text')
+    my_summary = fields.IndexedString(model_attr='summary')
+    my_text = fields.IndexedString(model_attr='text')
 
     my_date = fields.Date(model_attr='date')
     my_added_time = fields.DateTime(model_attr='added_time')
@@ -16,9 +16,9 @@ class DocumentIndex(indexes.Index):
 
     my_bool = fields.Bool(model_attr='bool')
 
-    unicode = fields.Text(model_attr='unicode')
+    unicode = fields.IndexedString(model_attr='unicode')
 
-    slash = fields.Text(model_attr='slash')
+    slash = fields.IndexedString(model_attr='slash')
 
     class Meta:
         model = Document

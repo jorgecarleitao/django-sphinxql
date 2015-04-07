@@ -233,13 +233,12 @@ class Configurator(object):
                                                      value,
                                                      connection_params[key])
 
-        ### create parameters for fields and attributes
+        ### create parameters for attributes
         for field in index.Meta.fields:
-            sphinx_field_name = field._sphinx_field_name
-
-            source_attrs = add_source_conf_param(source_attrs,
-                                                 sphinx_field_name,
-                                                 field.name)
+            if field.is_attribute:
+                source_attrs = add_source_conf_param(source_attrs,
+                                                     field._sphinx_field_name,
+                                                     field.name)
 
         if hasattr(index.Meta, 'range_step'):
             # see http://sphinxsearch.com/docs/current.html#ranged-queries
