@@ -50,15 +50,16 @@ class SearchQuerySetTestCase(SphinxQLTestCase):
         self.assertEqual(len(self.query.search('@text "text. What"')), 99)
 
     def test_override_order_by(self):
+        # order by in Django means first number is 200
         query = self.query.order_by('-id')
         self.assertEqual(query[0].number, 200)
 
-        # don't override Django order
+        # don't override Django order means first number is 200
         query.search_mode = True
         query = query.search_order_by(C('@id'))
         self.assertEqual(query[0].number, 200)
 
-        # clear Django ordering to override it
+        # clear Django ordering overrides it; order becomes @id.
         query = query.order_by()
         self.assertEqual(query[0].number, 2)
 
