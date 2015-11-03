@@ -81,14 +81,14 @@ def _generate_sql(query, vendor):
     compiler = query.query.get_compiler(using=db)
     cursor = compiler.connection.cursor()
     if vendor == 'pgsql':
-        return cursor.mogrify(*compiler.as_sql())
+        return cursor.mogrify(*compiler.as_sql()).decode('utf-8')
     else:
         if hasattr(cursor, 'mogrify'):
             # the backend has `mogrify` to map sql, params -> sql
             return cursor.mogrify(*compiler.as_sql())
         else:
             # backend doesn't have. We use the code from PyMySQL
-            return _pymysql_mogrify(cursor, *compiler.as_sql()).encode('utf-8')
+            return _pymysql_mogrify(cursor, *compiler.as_sql())
 
 
 def _build_query(index, query, vendor):
@@ -134,9 +134,6 @@ def _build_query(index, query, vendor):
     # we have to live with it.
     query = special_annotate(query.only('id'), annotation)
     sql = _generate_sql(query, vendor)
-
-    # it is in bytes; decode to utf-8
-    sql = sql.decode('utf-8')
 
     for field in [f for f in index.Meta.fields
                   if f.type() in (DateTime, Date)]:
