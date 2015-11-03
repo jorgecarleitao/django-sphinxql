@@ -2,7 +2,8 @@ from collections import OrderedDict
 from .configuration import indexes_configurator
 from .exceptions import ImproperlyConfigured
 from .fields import Field
-from .manager import Manager
+from .query import SearchQuerySet
+from .manager import IndexManager
 
 
 class MetaIndex(type):
@@ -46,9 +47,21 @@ class MetaIndex(type):
         # so it is indexed by Sphinx.
         indexes_configurator.register(new_class)
 
-        # default manager
-        if not hasattr(new_class, 'objects'):
-            new_class.objects = Manager(new_class)
+        # managers
+        has_any_manager = False
+        for manager_name in attrs:
+            # ignore non-managers
+            if not isinstance(attrs[manager_name], IndexManager):
+                continue
+
+            # construct the manager from the queryset, init it with this index and
+            # set it to the index
+            manager = attrs[manager_name].from_queryset(SearchQuerySet)(new_class)
+            setattr(new_class, manager_name, manager)
+            has_any_manager = True
+
+        if not has_any_manager:
+            new_class.objects = IndexManager.from_queryset(SearchQuerySet)(new_class)
 
         return new_class
 

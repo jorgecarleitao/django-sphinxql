@@ -199,8 +199,8 @@ class SearchQuerySet(django.db.models.query.QuerySet):
     """
     max_search_count = 1000
 
-    def __init__(self, index, query=None, using=None):
-        super(SearchQuerySet, self).__init__(index.Meta.model, query, using)
+    def __init__(self, index, query=None, using=None, hints=None):
+        super(SearchQuerySet, self).__init__(index.Meta.model, query, using, hints=hints)
         self._index = index
         self._sphinx_queryset = QuerySet(index)
 

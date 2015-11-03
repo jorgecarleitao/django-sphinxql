@@ -120,6 +120,18 @@ class SearchQuerySetTestCase(SphinxQLTestCase):
         q = q.order_by('-number')
         self.assertEqual(q[0].number, 200)
 
+    def test_manager(self):
+        # test that `objects` work.
+        q = DocumentIndex.objects.search('@text What')
+        self.assertEqual(q[0].number, 200)
+
+        self.assertEqual(DocumentIndex.objects.count(), 100)
+
+        self.assertEqual(DocumentIndex.objects
+                         .filter(number__in=[2, 4, 6]).count(), 3)
+
+        self.assertEqual(DocumentIndex.other_objects.count(), 3)
+
 
 class HighNumberSearchQuerySetTestCase(SphinxQLTestCase):
     """
