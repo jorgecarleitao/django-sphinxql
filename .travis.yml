@@ -10,6 +10,9 @@ install:
   - sudo bash -c "$(curl -fsSL https://gist.githubusercontent.com/jorgecarleitao/ee5cede492dbe41be8a5/raw/install_sphinx.sh)" 2.2.10
   - pip install .
   - pip install django psycopg2 pymysql
+  - pip install coveralls
 
 script:
-  - PYTHONPATH=$PYTHONPATH:`pwd` django-admin.py test --settings=tests.settings_travis tests
+  - PYTHONPATH=$PYTHONPATH:`pwd` coverage run `which django-admin.py` test --settings=tests.settings_travis tests
+
+after_success: coveralls

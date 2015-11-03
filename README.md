@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/jorgecarleitao/django-sphinxql.svg?branch=master)](https://travis-ci.org/jorgecarleitao/django-sphinxql)
+[![Coverage Status](https://coveralls.io/repos/jorgecarleitao/django-sphinxql/badge.svg?branch=master&service=github)](https://coveralls.io/github/jorgecarleitao/django-sphinxql?branch=master)
 
 Django-SphinxQL implements [Sphinx search](http://sphinxsearch.com) for
 [Django](https://www.djangoproject.com), thanks for checking it out.
