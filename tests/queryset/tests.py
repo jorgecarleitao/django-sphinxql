@@ -34,10 +34,6 @@ class SimpleTestCase(SphinxQLTestCase):
 
         self.query = QuerySet(DocumentIndex)
 
-    def tearDown(self):
-        Document.objects.all().delete()
-        super(SimpleTestCase, self).tearDown()
-
 
 class SimpleQuerySetTestCase(SimpleTestCase):
     """
@@ -201,10 +197,6 @@ class QuerySetTestCase(SphinxQLTestCase):
 
         self.index()
 
-    def tearDown(self):
-        Document.objects.all().delete()
-        super(QuerySetTestCase, self).tearDown()
-
     def test_len(self):
         self.assertEqual(len(QuerySet(DocumentIndex)), 100)
         self.assertEqual(QuerySet(DocumentIndex).count(), 100)
@@ -255,10 +247,6 @@ class LargeQuerySetTestCase(SphinxQLTestCase):
         self.documents = Document.objects.all()
 
         self.index()
-
-    def tearDown(self):
-        Document.objects.all().delete()
-        super(LargeQuerySetTestCase, self).tearDown()
 
     def test_count(self):
         self.assertEqual(QuerySet(DocumentIndex).count(),

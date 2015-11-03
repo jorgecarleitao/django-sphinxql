@@ -27,10 +27,6 @@ class IndexTestCase(SphinxQLTestCase):
         self.query = Query()
         self.query.fromm.append(DocumentIndex)
 
-    def tearDown(self):
-        Document.objects.all().delete()
-        super(IndexTestCase, self).tearDown()
-
     def test_summary(self):
         result = list(self.query)[0][1]
         self.assertEqual(result, 'This is a summary')
@@ -100,10 +96,6 @@ class IndexSeveralTestCase(SphinxQLTestCase):
 
         self.query = Query()
         self.query.fromm.append(DocumentIndex)
-
-    def tearDown(self):
-        Document.objects.all().delete()
-        super(IndexSeveralTestCase, self).tearDown()
 
     def test_range_query(self):
         query = Query()

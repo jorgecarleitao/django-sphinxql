@@ -22,10 +22,6 @@ class QueryTestCase(SphinxQLTestCase):
         self.query = Query()
         self.query.fromm.append(AuthorIndex)
 
-    def tearDown(self):
-        Author.objects.all().delete()
-        super(QueryTestCase, self).tearDown()
-
     def test_basic(self):
         column = AuthorIndex.first_name
 

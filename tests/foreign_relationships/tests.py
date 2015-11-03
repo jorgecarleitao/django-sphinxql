@@ -21,10 +21,6 @@ class IndexTestCase(SphinxQLTestCase):
         Document.objects.create(type=type, text="What a nice text")
         self.index()
 
-    def tearDown(self):
-        Document.objects.all().delete()
-        super(IndexTestCase, self).tearDown()
-
     def test_basic(self):
         query = Query()
         query.fromm.append(DocumentIndex)

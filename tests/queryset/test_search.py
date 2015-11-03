@@ -27,10 +27,6 @@ class SearchQuerySetTestCase(SphinxQLTestCase):
 
         self.query = SearchQuerySet(DocumentIndex)
 
-    def tearDown(self):
-        Document.objects.all().delete()
-        super(SearchQuerySetTestCase, self).tearDown()
-
     def test_django_filter(self):
         query = self.query.filter(number__gt=190)
         self.assertEqual(len(query), 5)
@@ -142,10 +138,6 @@ class HighNumberSearchQuerySetTestCase(SphinxQLTestCase):
         self.index()
 
         self.query = SearchQuerySet(DocumentIndex)
-
-    def tearDown(self):
-        Document.objects.all().delete()
-        super(HighNumberSearchQuerySetTestCase, self).tearDown()
 
     def test_len(self):
         self.assertEqual(len(self.query.search('nice')), 1000)
