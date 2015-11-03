@@ -7,7 +7,7 @@ env:
   - BACKEND=postgres
 
 install:
-  - sudo bash -c "$(curl -fsSL https://gist.githubusercontent.com/jorgecarleitao/ee5cede492dbe41be8a5/raw/install_sphinx.sh)" 2.2.6
+  - sudo bash -c "$(curl -fsSL https://gist.githubusercontent.com/jorgecarleitao/ee5cede492dbe41be8a5/raw/install_sphinx.sh)" 2.2.10
   - pip install .
   - pip install django psycopg2 pymysql
 

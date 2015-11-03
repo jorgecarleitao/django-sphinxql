@@ -22,7 +22,7 @@ Django-SphinxQL requires:
 - Django (>=1.8)
 - Sphinx
 
-Our testing matrix uses the latest Django, Sphinx 2.2.6, with two builds, mysql
+Our testing matrix uses the latest Django, Sphinx 2.2.10, with two builds, mysql
 and postgres. For more details, you can check directory `tests` and `.travis.yml`.
 To run the tests locally, use:
 
@@ -37,7 +37,7 @@ Installation
 Django-SphinxQL has no requirements besides Django and Sphinx. To install Sphinx,
 use:
 
-    export VERSION=2.2.6
+    export VERSION=2.2.10
     wget http://sphinxsearch.com/files/sphinx-$VERSION-release.tar.gz
     tar -xf sphinx-$VERSION-release.tar.gz
     cd sphinx-$VERSION-release

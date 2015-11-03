@@ -28,15 +28,22 @@ class SphinxQLTestCase(TransactionTestCase):
         configuration.indexes_configurator.configure()
         configuration.indexes_configurator.output()
 
+        # clean path if it exists from previous tests
+        if os.path.exists(settings.INDEXES['path']):
+            shutil.rmtree(settings.INDEXES['path'])
         os.mkdir(settings.INDEXES['path'])
 
-    def index(self):
-        """
-        Called on SetUp to index the models for the first time.
-        """
         configuration.index()
         configuration.start()
 
+    def index(self):
+        """
+        Used to reindex the sphinx index.
+        """
+        configuration.reindex()
+
     def tearDown(self):
+        configuration.stop()
         shutil.rmtree(settings.INDEXES['path'])
         settings.INDEXES['path'] = self._old_path
+        super(SphinxQLTestCase, self).tearDown()
