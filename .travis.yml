@@ -2,11 +2,12 @@ language: python
 python:
   - "3.3"
 
-env:
-  - BACKEND=mysql
-  - BACKEND=postgres
-  - SPHINX_VERSION=2.2.6
-  - SPHINX_VERSION=2.2.10
+matrix:
+  include:
+  - env: BACKEND=mysql SPHINX_VERSION=2.2.6
+  - env: BACKEND=mysql SPHINX_VERSION=2.2.10
+  - env: BACKEND=postgres SPHINX_VERSION=2.2.6
+  - env: BACKEND=postgres SPHINX_VERSION=2.2.10
 
 install:
   - sudo bash -c "$(curl -fsSL https://gist.githubusercontent.com/jorgecarleitao/ee5cede492dbe41be8a5/raw/install_sphinx.sh)" ${SPHINX_VERSION}
