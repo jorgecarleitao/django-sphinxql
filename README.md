@@ -18,13 +18,20 @@ Specifically, this API allows you to:
 results as Django models.
 
 Django-SphinxQL requires:
+
 - Python 3
 - mysql or postgres
 - Django (>=1.8)
 - Sphinx
 
-Our testing matrix uses the latest Django, Sphinx 2.2.10, with two builds, mysql
-and postgres. For more details, you can check directory `tests` and `.travis.yml`.
+Our build matrix in Travis has 4 builds:
+
+- Python 3.3 with latest Django
+- Sphinx 2.2.6 and 2.2.10
+- mysql and postgres backend
+
+For more details, you can check the directory `tests` and `.travis.yml`.
+
 To run the tests locally, use:
 
     PYTHONPATH=..:$PYTHONPATH django-admin.py test --settings=tests.settings_test tests
