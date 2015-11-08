@@ -276,6 +276,9 @@ class Configurator(object):
         searchd_params = OrderedDict()
         searchd_params.update(DEFAULT_SEARCHD_PARAMS)
         searchd_params['pid_file'] = os.path.join(settings.INDEXES.get('sphinx_path'), 'searchd.pid')
+        # see WARNING at http://sphinxsearch.com/docs/current/conf-binlog-path.html
+        searchd_params['binlog_path'] = settings.INDEXES.get('sphinx_path')
+
         searchd_params.update(settings.INDEXES.get('searchd_params', {}))
 
         return SearchdConfiguration(searchd_params)
