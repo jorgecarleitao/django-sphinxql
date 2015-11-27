@@ -7,13 +7,22 @@ from sphinxql import configuration
 
 class Command(BaseCommand):
     help = "Indexes your models."
-    option_list = BaseCommand.option_list
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--update',
+            action='store_true',
+            help='',
+            default=True)
 
     def handle(self, **options):
-        self.stdout.write('Started indexing\n')
-        self.stdout.write('----------------\n')
+        self.stdout.write('Started indexing')
+        self.stdout.write('----------------')
 
-        self.stdout.write(configuration.index())
+        if options['update']:
+            self.stdout.write(configuration.reindex())
+        else:
+            self.stdout.write(configuration.index())
 
-        self.stdout.write('-----------------\n')
-        self.stdout.write('Indexing finished\n')
+        self.stdout.write('-----------------')
+        self.stdout.write('Indexing finished')

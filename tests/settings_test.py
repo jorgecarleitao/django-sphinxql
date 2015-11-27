@@ -10,14 +10,14 @@ DATABASES = {
     },
 }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'sphinx_example',
-        'TEST_NAME': 'sphinx_example_test',
-        'USER': 'root',
-        },
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'sphinx_example',
+#         'TEST_NAME': 'sphinx_example_test',
+#         'USER': 'root',
+#         },
+# }
 
 INSTALLED_APPS = ('sphinxql', 'tests.query', 'tests.queryset',
                   'tests.indexing', 'tests.foreign_relationships')

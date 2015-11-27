@@ -98,7 +98,5 @@ class IndexSeveralTestCase(SphinxQLTestCase):
         self.query.fromm.append(DocumentIndex)
 
     def test_range_query(self):
-        query = Query()
-        query.fromm.append(DocumentIndex)
-        query.select.append(Count(All()))
-        self.assertEqual(list(query)[0][1], 1000)
+        self.query.select.append(Count(All()))
+        self.assertEqual(list(self.query)[0][1], 1000)

@@ -1,7 +1,9 @@
 import shutil
 import os
 
+from io import StringIO
 from django.conf import settings
+from django.core.management import call_command
 from django.test import TransactionTestCase
 
 from sphinxql import configuration
@@ -33,17 +35,17 @@ class SphinxQLTestCase(TransactionTestCase):
             shutil.rmtree(settings.INDEXES['path'])
         os.mkdir(settings.INDEXES['path'])
 
-        configuration.index()
-        configuration.start()
+        call_command('index_sphinx', update=False, stdout=StringIO())
+        call_command('start_sphinx', stdout=StringIO())
 
     def index(self):
         """
         Used to reindex the sphinx index.
         """
-        configuration.reindex()
+        call_command('index_sphinx', stdout=StringIO())
 
     def tearDown(self):
-        configuration.stop()
+        call_command('stop_sphinx', stdout=StringIO())
         shutil.rmtree(settings.INDEXES['path'])
         settings.INDEXES['path'] = self._old_path
         super(SphinxQLTestCase, self).tearDown()

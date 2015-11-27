@@ -10,10 +10,10 @@ class Command(BaseCommand):
     option_list = BaseCommand.option_list
 
     def handle(self, **options):
-        self.stdout.write('Stopping Sphinx\n')
-        self.stdout.write('---------------\n')
+        self.stdout.write('Stopping Sphinx')
+        self.stdout.write('---------------')
 
         self.stdout.write(configuration.stop())
 
-        self.stdout.write('----\n')
-        self.stdout.write('Done\n')
+        self.stdout.write('----')
+        self.stdout.write('Done')
