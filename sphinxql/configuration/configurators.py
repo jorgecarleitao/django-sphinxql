@@ -113,8 +113,9 @@ def _build_query(index, query, vendor):
 
         # Add the aggregates to the query
         for (alias, aggregate_expr) in dict_values.items():
-            obj.query.add_aggregate(aggregate_expr, query.model, alias,
-                                    is_summary=False)
+            obj.query.add_annotation(aggregate_expr, alias, is_summary=False)
+            # obj.query.add_aggregate(aggregate_expr, query.model, alias,
+            #                         is_summary=False)
 
         return obj
 

@@ -1,5 +1,5 @@
-from django.db.models import F, CharField
-from django.db.models.functions import Concat, Value
+from django.db.models import F, CharField, Value
+from django.db.models.functions import Concat
 from sphinxql import indexes, fields
 
 from .models import Document

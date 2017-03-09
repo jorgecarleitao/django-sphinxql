@@ -14,21 +14,23 @@ Specifically, this API allows you to:
 
 1. Configure Sphinx with Python.
 2. Index Django models in Sphinx.
-3. Execute Sphinx queries (SphinxQL) using a Django-like expressions and have the 
+3. Execute Sphinx queries (SphinxQL) using Django-like expressions and have the 
 results as Django models.
 
 Django-SphinxQL requires:
 
 - Python 3
-- mysql or postgres
+- pymysql
 - Django (>=1.8)
 - Sphinx
+- A backend (pymysql or psycopg2)
 
-Our build matrix in Travis has 4 builds:
+Our build matrix in Travis has 8 builds:
 
-- Python 3.3 with latest Django
-- Sphinx 2.2.6 and 2.2.10
-- mysql and postgres backend
+- Python 3.4
+- Django 1.8 and 1.10
+- Sphinx 2.2.10 and 2.2.11
+- mysql and postgres backends
 
 For more details, you can check the directory `tests` and `.travis.yml`.
 

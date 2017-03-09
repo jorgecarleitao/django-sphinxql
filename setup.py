@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='django-sphinxql',
-      version='1.0.0',
+      version='1.1.0',
       description='Sphinx search on Django',
       long_description=open('README.md').read(),
       author='Jorge C. Leitão',

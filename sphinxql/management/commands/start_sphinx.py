@@ -7,7 +7,6 @@ from sphinxql import configuration
 
 class Command(BaseCommand):
     help = 'Interacts with search deamon.'
-    option_list = BaseCommand.option_list
 
     def handle(self, **options):
         self.stdout.write('Starting Sphinx')
